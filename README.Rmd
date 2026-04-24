@@ -1,0 +1,230 @@
+---
+output: github_document
+---
+
+# servcat <a href="https://USFWS.github.io/servcat/"><img src="man/figures/logo.png" align="right" height="120" alt="servcat website" /></a>
+
+`servcat` provides an R interface to ServCat, the authoritative repository for U.S. Fish and Wildlife Service (FWS) data and reference information.
+
+Use this package to search ServCat, retrieve reference metadata, inspect related units and subject categories, access saved collections, and download files associated with ServCat references.
+
+## Installation
+
+You can install the development version of `servcat` from [GitHub](https://github.com/USFWS) with:
+
+``` r
+# install.packages("pak")
+pak::pak("USFWS/servcat")
+```
+
+Then load the package:
+
+``` r
+library(servcat)
+```
+
+## Usage
+
+### Search for references by their ID
+
+ServCat references have unique reference IDs. If you already know the reference ID, you can retrieve the reference record directly.
+
+``` r
+ref <- get_reference(140411)
+
+ref
+```
+
+This is useful when you want to inspect metadata for a known ServCat item, such as title, abstract, publication date, authors, associated files, or related organizational information.
+
+### Run an advanced search
+
+Use `advanced_search()` to search ServCat with one or more search criteria. Search criteria are sent in the body of a POST request, while paging options control how many records are returned.
+
+``` r
+results <- advanced_search(
+  criteria = list(
+    quickSearch = "Kodiak goats"
+  ),
+  page = 1,
+  page_size = 25
+)
+
+results
+```
+
+You can combine multiple criteria in the request body:
+
+``` r
+results <- advanced_search(
+  criteria = list(
+    quickSearch = "wetlands",
+    title = "inventory",
+    subjectCategories = c("Habitat", "Wetlands")
+  ),
+  page = 1,
+  page_size = 50
+)
+```
+
+The exact fields available for advanced search depend on the ServCat API. Common criteria include text search terms, title keywords, author names, subject categories, reference types, organizations, dates, and geographic filters.
+
+### Return composite advanced search results
+
+Some ServCat endpoints return additional composite detail for each reference. Use composite search when you need richer results than the standard advanced search response.
+
+``` r
+composite_results <- advanced_search(
+  criteria = list(
+    quickSearch = "Kodiak, goats"
+  ),
+  page = 1,
+  page_size = 25,
+  composite = TRUE
+)
+
+composite_results
+```
+
+Composite results may include additional nested information about the reference, such as related files, organizations, people, subjects, or other associated metadata.
+
+### Retrieve references from a saved collection
+
+ServCat saved collections group related references. Use `get_collection_references()` with a saved collection ID to retrieve the references in that collection.
+
+``` r
+collection_refs <- get_collection_references(1397)
+
+collection_refs
+```
+
+This is useful when working with curated groups of references, such as project collections, regional datasets, or topic-based ServCat collections.
+
+### Download files from a reference
+
+Many ServCat references include one or more associated files. Use `download_reference_files()` to download files attached to a reference.
+
+``` r
+download_reference_files(
+  reference_id = 140411,
+  path = "data-raw/servcat-files"
+)
+```
+
+You can also use this function in a loop or with `lapply()`/`purrr::map()` to download files from multiple references.
+
+``` r
+reference_ids <- c(140411, 140412, 140413)
+
+lapply(
+  reference_ids,
+  download_reference_files,
+  path = "data-raw/servcat-files"
+)
+```
+
+### Get units associated with a reference
+
+ServCat references can be associated with one or more FWS units (i.e., refuges). Use `get_reference_units()` to retrieve those units.
+
+``` r
+units <- get_reference_units(140411)
+
+units
+```
+
+### Get geographic bounding boxes
+
+Use `get_reference_bounding_boxes()` to retrieve geographic bounding box coordinates associated with a reference.
+
+``` r
+bbox <- get_reference_bounding_boxes(140411)
+
+bbox
+```
+
+Bounding boxes can help identify the geographic extent of a reference and may be useful for mapping or spatial filtering workflows.
+
+### Get subject categories
+
+Use `get_reference_subjects()` to retrieve the subject categories associated with a ServCat reference.
+
+``` r
+subjects <- get_reference_subjects(140411)
+
+subjects
+```
+
+Subject categories can help classify references by topic and support more targeted searches.
+
+### Get reference types
+
+Use `get_reference_types()` to retrieve the list of ServCat reference types.
+
+``` r
+reference_types <- get_reference_types()
+
+reference_types
+```
+
+Reference types can be useful when building advanced searches or filtering results to particular kinds of records.
+
+## Example workflow
+
+A typical workflow might look like this:
+
+``` r
+library(servcat)
+
+# Search ServCat
+results <- advanced_search(
+  criteria = list(
+    quickSearch = "Kodiak goats"
+  ),
+  page = 1,
+  page_size = 10,
+  composite = TRUE
+)
+
+# Inspect one reference ID from the results
+ref <- get_reference(140411)
+
+# Retrieve related metadata
+units <- get_reference_units(140411)
+subjects <- get_reference_subjects(140411)
+bbox <- get_reference_bounding_boxes(140411)
+
+# Download associated files
+download_reference_files(
+  reference_id = 140411,
+  path = "data-raw/servcat-files"
+)
+```
+
+## Notes
+
+`servcat` wraps the ServCat REST API and returns R objects suitable for downstream analysis, reporting, and data management workflows.
+
+Because ServCat records can vary in structure, some returned fields may be missing, empty, or nested depending on the reference, endpoint, and search type used.
+
+## Getting help
+
+Contact a [project maintainer](mailto:mccrea_cobb@fws.gov) for help with this repository.
+
+## Contribute
+
+Contact the project maintainer for information about contributing to this repository.
+
+Submit a [GitHub Issue](https://github.com/USFWS/servcat/issues) to report a bug or request a feature or enhancement.
+
+When reporting an issue, please include:
+
+- A brief description of the problem.
+- A minimal reproducible example, if possible.
+- The function you were using.
+- The ServCat reference ID, collection ID, or search criteria involved.
+- Your R version and `servcat` package version.
+
+-----
+
+![](https://i.creativecommons.org/l/zero/1.0/88x31.png) This work is licensed under a [Creative Commons Zero Universal v1.0 License](https://creativecommons.org/publicdomain/zero/1.0/).

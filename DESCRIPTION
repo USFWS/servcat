@@ -1,0 +1,27 @@
+Package: servcat
+Title: R Interface for the FWS ServCat API
+Version: 0.0.0.1
+Authors@R: 
+    person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9412-1468"))
+Description: Interact with ServCat in R.
+License: CCO
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    cli,
+    data.table,
+    dplyr,
+    glue,
+    httr2,
+    lubridate,
+    purrr,
+    rlang,
+    stringr,
+    tibble
+Depends: 
+    R (>= 4.2)
+LazyData: true
+VignetteBuilder: knitr
+URL: https://USFWS.github.io/servcat/, https://github.com/USFWS/servcat
+BugReports: https://github.com/USFWS/servcat/issues
