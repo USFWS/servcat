@@ -4,7 +4,7 @@ Version: 0.0.0.1
 Authors@R: 
     person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9412-1468"))
 Description: Interact with ServCat in R.
-License: CCO
+License: CC0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
@@ -23,5 +23,5 @@ Depends:
     R (>= 4.2)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://USFWS.github.io/servcat/, https://github.com/USFWS/servcat
+URL: https://USFWS.github.io/servcat/, https://github.com/USFWS/servcat, https://ideal-adventure-2qyoqkw.pages.github.io/
 BugReports: https://github.com/USFWS/servcat/issues

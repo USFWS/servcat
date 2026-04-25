@@ -58,22 +58,6 @@ base_url <- function(secure = FALSE) {
   )
 }
 
-#' Get a ServCat profile URL
-#'
-#' @param reference_id A ServCat reference ID.
-#'
-#' @returns A length-1 character vector
-#' @keywords internal
-profile_url <- function(reference_id) {
-  validate_reference_id(reference_id)
-
-  paste0(
-    get("servcat_reference_url", envir = .pkgglobalenv),
-    "/",
-    reference_id
-  )
-}
-
 #' Retrieve secure ServCat API key
 #'
 #' @param env_var Environment variable name
@@ -324,41 +308,4 @@ get_reference_profiles_batch <- function(
   names(response) <- as.character(ids)
 
   response
-}
-
-#' Ask user to confirm a reference title before a destructive action
-#'
-#' @param reference_id A single ServCat reference ID
-#' @param secure Logical. Use the secure API?
-#' @param api_key Optional secure API key
-#' @param call Calling environment
-#'
-#' @returns `NULL`, invisibly.
-#' @keywords internal
-confirm_reference_title <- function(
-  reference_id,
-  secure = TRUE,
-  api_key = NULL,
-  call = rlang::caller_env()
-) {
-  ref <- search_references_by_id_basic(
-    reference_ids = reference_id,
-    secure = secure,
-    api_key = api_key
-  )
-
-  ref_title <- ref$title[[1]]
-
-  cli::cli_alert(
-    "You are about to modify the following reference: {ref_title}. Do you wish to continue?\n",
-    wrap = TRUE
-  )
-
-  answer <- readline("(Y/N): ")
-
-  if (!(tolower(answer) %in% c("y", "yes"))) {
-    cli::cli_abort("Operation aborted by user.", call = call)
-  }
-
-  invisible(NULL)
 }
