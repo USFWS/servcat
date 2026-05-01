@@ -12,13 +12,13 @@ validate_reference_id(
 )
 }
 \arguments{
-\item{reference_id}{ServCat reference ID or IDs}
+\item{reference_id}{ServCat reference ID or IDs.}
 
 \item{multiple_ok}{Logical. Are multiple IDs allowed?}
 
-\item{arg}{Used to generate helpful error messages}
+\item{arg}{Used to generate helpful error messages.}
 
-\item{call}{Calling environment}
+\item{call}{Calling environment.}
 }
 \value{
 \code{NULL}, invisibly.

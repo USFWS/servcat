@@ -11,7 +11,8 @@ get_collection_references(collection_id, secure = FALSE, api_key = NULL)
 
 \item{secure}{Logical. Use the secure API?}
 
-\item{api_key}{Optional secure API key.}
+\item{api_key}{Optional secure API key. If omitted, the package API-key
+helper is used for secure requests.}
 }
 \value{
 A tibble of composite reference records. Nested fields such as

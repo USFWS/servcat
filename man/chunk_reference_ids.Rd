@@ -7,12 +7,12 @@
 chunk_reference_ids(reference_ids, chunk_size = 25)
 }
 \arguments{
-\item{reference_ids}{Numeric vector of reference IDs}
+\item{reference_ids}{Numeric vector of reference IDs.}
 
-\item{chunk_size}{Maximum number of IDs per request}
+\item{chunk_size}{Maximum number of IDs per request.}
 }
 \value{
-A list of numeric vectors
+A list of numeric vectors.
 }
 \description{
 Chunk reference IDs for Profile requests

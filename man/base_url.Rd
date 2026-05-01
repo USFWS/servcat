@@ -10,7 +10,7 @@ base_url(secure = FALSE)
 \item{secure}{Logical. Use the secure ServCat API?}
 }
 \value{
-A length-1 character vector
+A length-1 character vector.
 }
 \description{
 Get the base URL for the ServCat API

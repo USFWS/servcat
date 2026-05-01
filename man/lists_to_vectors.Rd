@@ -7,12 +7,12 @@
 lists_to_vectors(parent_list, child_list_names)
 }
 \arguments{
-\item{parent_list}{A ServCat profile record}
+\item{parent_list}{A ServCat profile record.}
 
-\item{child_list_names}{Element names to simplify}
+\item{child_list_names}{Element names to simplify.}
 }
 \value{
-A modified list
+A modified list.
 }
 \description{
 Convert nested lists in a profile to vectors

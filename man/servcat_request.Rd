@@ -10,7 +10,7 @@ servcat_request(secure = FALSE, suppress_errors = TRUE, api_key = NULL)
 \item{secure}{Logical. Use the secure API?}
 
 \item{suppress_errors}{Logical. Suppress HTTP errors so they can be handled
-by \code{servcat_validate_response()}.}
+by \code{validate_response()}.}
 
 \item{api_key}{Optional API key. If omitted for secure requests, the value is
 read from \code{SERVCAT_API_KEY}.}

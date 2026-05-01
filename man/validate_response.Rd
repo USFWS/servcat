@@ -7,13 +7,13 @@
 validate_response(resp, nice_msg_400, nice_msg_500, call = rlang::caller_env())
 }
 \arguments{
-\item{resp}{An \code{httr2_response}}
+\item{resp}{An \code{httr2_response}.}
 
-\item{nice_msg_400}{Optional message for 4xx errors}
+\item{nice_msg_400}{Optional message for 4xx errors.}
 
-\item{nice_msg_500}{Optional message for 5xx errors}
+\item{nice_msg_500}{Optional message for 5xx errors.}
 
-\item{call}{Calling environment}
+\item{call}{Calling environment.}
 }
 \value{
 \code{NULL}, invisibly.

@@ -7,10 +7,10 @@
 collapse_reference_ids(reference_ids)
 }
 \arguments{
-\item{reference_ids}{Numeric vector of reference IDs}
+\item{reference_ids}{Numeric vector of reference IDs.}
 }
 \value{
-A length-1 character vector
+A length-1 character vector.
 }
 \description{
 Collapse reference IDs for the Profile endpoint

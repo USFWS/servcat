@@ -7,14 +7,15 @@
 get_reference_profiles_batch(reference_ids, secure = FALSE, api_key = NULL)
 }
 \arguments{
-\item{reference_ids}{Numeric vector of up to 25 ServCat reference IDs}
+\item{reference_ids}{Numeric vector of up to 25 ServCat reference IDs.}
 
 \item{secure}{Logical. Use the secure API?}
 
-\item{api_key}{Optional secure API key}
+\item{api_key}{Optional secure API key.}
 }
 \value{
-A named list of ServCat profile records
+A named list of ServCat profile records. Field names returned by the
+API are preserved.
 }
 \description{
 Retrieve a batch of ServCat reference profiles

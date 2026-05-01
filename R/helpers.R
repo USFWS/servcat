@@ -14,151 +14,41 @@ assign(
   envir = .pkgglobalenv
 )
 
-assign(
-  "servcat_reference_url",
-  "https://iris.fws.gov/APPS/ServCat/Reference/Profile",
-  envir = .pkgglobalenv
-)
+utils::globalVariables(c(".data"))
 
-utils::globalVariables(c(
-  "public_refs",
-  "internal_refs",
-  "found",
-  "key",
-  "ref_group_code",
-  "searchTerm",
-  "userSort",
-  "resourceId",
-  "description",
-  "fileName",
-  "fileSize",
-  "extension",
-  "mimeType",
-  "downloadLink",
-  "fileSize_kb",
-  "mail",
-  "referenceId",
-  "title"
-))
 
-#' Get the base URL for the ServCat API
+#' Remove NULL values from a nested list
 #'
-#' @param secure Logical. Use the secure ServCat API?
+#' Recursively removes `NULL` values from a list before sending it as a JSON
+#' request body. Empty child lists are retained.
 #'
-#' @returns A length-1 character vector
+#' @param x A list or other object.
+#'
+#' @returns `x` with `NULL` list elements removed.
 #' @keywords internal
-base_url <- function(secure = FALSE) {
-  if (!is.logical(secure) || length(secure) != 1 || is.na(secure)) {
-    cli::cli_abort("{.arg secure} must be `TRUE` or `FALSE`.")
+compact_null_values <- function(x) {
+  if (!is.list(x)) {
+    return(x)
   }
-
-  dplyr::case_when(
-    secure ~ get("servcat_secure_api", envir = .pkgglobalenv),
-    !secure ~ get("servcat_public_api", envir = .pkgglobalenv)
-  )
+  
+  x <- lapply(x, compact_null_values)
+  
+  x[!vapply(x, is.null, logical(1))]
 }
 
-#' Retrieve secure ServCat API key
-#'
-#' @param env_var Environment variable name
-#'
-#' @returns A length-1 character vector
-#' @keywords internal
-api_key <- function(env_var = "SERVCAT_API_KEY") {
-  key <- Sys.getenv(env_var, unset = "")
-
-  if (identical(key, "")) {
-    cli::cli_abort(
-      "Environment variable {.val {env_var}} is not set."
-    )
-  }
-
-  key
-}
-
-#' Build a ServCat request
-#'
-#' @param secure Logical. Use the secure API?
-#' @param suppress_errors Logical. Suppress HTTP errors so they can be handled
-#'   by `servcat_validate_response()`.
-#' @param api_key Optional API key. If omitted for secure requests, the value is
-#'   read from `SERVCAT_API_KEY`.
-#'
-#' @returns An `httr2_request` object.
-#' @keywords internal
-servcat_request <- function(
-  secure = FALSE,
-  suppress_errors = TRUE,
-  api_key = NULL
-) {
-  req <- httr2::request(base_url(secure = secure)) |>
-    httr2::req_user_agent("servcat")
-
-  if (secure) {
-    api_key <- rlang::`%||%`(api_key, api_key())
-    req <- req |>
-      httr2::req_headers(`X-API-KEY` = api_key)
-  }
-
-  if (suppress_errors) {
-    req <- req |>
-      httr2::req_error(is_error = \(resp) FALSE)
-  }
-
-  req
-}
-
-#' Validate a ServCat reference ID
-#'
-#' @param reference_id ServCat reference ID or IDs
-#' @param multiple_ok Logical. Are multiple IDs allowed?
-#' @param arg Used to generate helpful error messages
-#' @param call Calling environment
-#'
-#' @returns `NULL`, invisibly.
-#' @keywords internal
-validate_reference_id <- function(
-  reference_id,
-  multiple_ok = FALSE,
-  arg = rlang::caller_arg(reference_id),
-  call = rlang::caller_env()
-) {
-  if (!multiple_ok && length(reference_id) > 1) {
-    cli::cli_abort(
-      "You may only provide one reference ID at a time.",
-      call = call
-    )
-  }
-
-  if (!is.numeric(reference_id)) {
-    cli::cli_abort(
-      "{.arg {arg}} is invalid. Reference IDs must be numeric.",
-      call = call
-    )
-  }
-
-  if (!all(reference_id == floor(reference_id))) {
-    cli::cli_abort(
-      "{.arg {arg}} is invalid. Reference IDs must be whole number(s).",
-      call = call
-    )
-  }
-
-  invisible(NULL)
-}
 
 #' Validate a TRUE/FALSE argument
 #'
-#' @param x Value to validate
-#' @param arg Used to generate helpful error messages
-#' @param call Calling environment
+#' @param x Value to validate.
+#' @param arg Used to generate helpful error messages.
+#' @param call Calling environment.
 #'
 #' @returns `NULL`, invisibly.
 #' @keywords internal
 validate_flag <- function(
-  x,
-  arg = rlang::caller_arg(x),
-  call = rlang::caller_env()
+    x,
+    arg = rlang::caller_arg(x),
+    call = rlang::caller_env()
 ) {
   if (!is.logical(x) || length(x) != 1 || is.na(x)) {
     cli::cli_abort(
@@ -170,72 +60,127 @@ validate_flag <- function(
   invisible(NULL)
 }
 
-#' Validate a ServCat API response
+
+#' Validate a positive whole-number argument
 #'
-#' @param resp An `httr2_response`
-#' @param nice_msg_400 Optional message for 4xx errors
-#' @param nice_msg_500 Optional message for 5xx errors
-#' @param call Calling environment
+#' @param x Value to validate.
+#' @param arg Used to generate helpful error messages.
+#' @param multiple_ok Logical. Are multiple values allowed?
+#' @param min Minimum allowed value.
+#' @param call Calling environment.
 #'
 #' @returns `NULL`, invisibly.
 #' @keywords internal
-validate_response <- function(
-  resp,
-  nice_msg_400,
-  nice_msg_500,
-  call = rlang::caller_env()
+validate_whole_number <- function(
+    x,
+    arg = rlang::caller_arg(x),
+    multiple_ok = FALSE,
+    min = 1,
+    call = rlang::caller_env()
 ) {
-  if (httr2::resp_is_error(resp)) {
-    if (missing(nice_msg_400)) {
-      nice_msg_400 <- c(
-        "i" = "There is a problem with the API request. Check reference IDs, search terms, and filters for typos.",
-        "i" = "If you are using the secure API, verify that your API key is set and valid."
-      )
-    }
+  if (missing(x) || length(x) == 0) {
+    cli::cli_abort("{.arg {arg}} must be supplied.", call = call)
+  }
 
-    if (missing(nice_msg_500)) {
-      nice_msg_500 <- c(
-        "i" = "The ServCat service returned a server error. Try again later or confirm the endpoint is available."
-      )
-    }
+  if (!multiple_ok && length(x) != 1) {
+    cli::cli_abort("{.arg {arg}} must be a single value.", call = call)
+  }
 
-    status_num <- httr2::resp_status(resp)
-    nice_msg <- if (floor(status_num / 100) == 5) nice_msg_500 else nice_msg_400
-    http_err <- glue::glue("HTTP {status_num}: {httr2::resp_status_desc(resp)}")
-
-    cli::cli_abort(c(http_err, nice_msg), call = call)
+  if (
+    !is.numeric(x) ||
+      anyNA(x) ||
+      any(!is.finite(x)) ||
+      any(x != floor(x)) ||
+      any(x < min)
+  ) {
+    cli::cli_abort(
+      "{.arg {arg}} must be positive whole number(s).",
+      call = call
+    )
   }
 
   invisible(NULL)
 }
 
+
+#' Validate a single non-empty character argument
+#'
+#' @param x Value to validate.
+#' @param arg Used to generate helpful error messages.
+#' @param call Calling environment.
+#'
+#' @returns `NULL`, invisibly.
+#' @keywords internal
+validate_string <- function(
+    x,
+    arg = rlang::caller_arg(x),
+    call = rlang::caller_env()
+) {
+  if (!is.character(x) || length(x) != 1 || is.na(x) || !nzchar(x)) {
+    cli::cli_abort(
+      "{.arg {arg}} must be a single non-empty character string.",
+      call = call
+    )
+  }
+
+  invisible(NULL)
+}
+
+
+#' Validate a ServCat reference ID
+#'
+#' @param reference_id ServCat reference ID or IDs.
+#' @param multiple_ok Logical. Are multiple IDs allowed?
+#' @param arg Used to generate helpful error messages.
+#' @param call Calling environment.
+#'
+#' @returns `NULL`, invisibly.
+#' @keywords internal
+validate_reference_id <- function(
+    reference_id,
+    multiple_ok = FALSE,
+    arg = rlang::caller_arg(reference_id),
+    call = rlang::caller_env()
+) {
+  validate_whole_number(
+    x = reference_id,
+    arg = arg,
+    multiple_ok = multiple_ok,
+    min = 1,
+    call = call
+  )
+}
+
+
 #' Collapse reference IDs for the Profile endpoint
 #'
-#' @param reference_ids Numeric vector of reference IDs
+#' @param reference_ids Numeric vector of reference IDs.
 #'
-#' @returns A length-1 character vector
+#' @returns A length-1 character vector.
 #' @keywords internal
 collapse_reference_ids <- function(reference_ids) {
   paste(unique(reference_ids), collapse = ",")
 }
 
+
 #' Chunk reference IDs for Profile requests
 #'
-#' @param reference_ids Numeric vector of reference IDs
-#' @param chunk_size Maximum number of IDs per request
+#' @param reference_ids Numeric vector of reference IDs.
+#' @param chunk_size Maximum number of IDs per request.
 #'
-#' @returns A list of numeric vectors
+#' @returns A list of numeric vectors.
 #' @keywords internal
 chunk_reference_ids <- function(reference_ids, chunk_size = 25) {
   split(reference_ids, ceiling(seq_along(reference_ids) / chunk_size))
 }
 
+
 #' Convert nested lists in a profile to vectors
 #'
-#' @param parent_list A ServCat profile record
-#' @param child_list_names Element names to simplify
+#' @param parent_list A ServCat profile record.
+#' @param child_list_names Element names to simplify.
 #'
-#' @returns A modified list
+#' @returns A modified list.
 #' @keywords internal
 lists_to_vectors <- function(parent_list, child_list_names) {
   for (child_list in child_list_names) {
@@ -247,12 +192,13 @@ lists_to_vectors <- function(parent_list, child_list_names) {
   parent_list
 }
 
+
 #' Convert nested lists in a profile to tibbles
 #'
-#' @param parent_list A ServCat profile record
-#' @param child_list_names Element names to convert
+#' @param parent_list A ServCat profile record.
+#' @param child_list_names Element names to convert.
 #'
-#' @returns A modified list
+#' @returns A modified list.
 #' @keywords internal
 lists_to_tibbles <- function(parent_list, child_list_names) {
   for (child_list in child_list_names) {
@@ -264,48 +210,410 @@ lists_to_tibbles <- function(parent_list, child_list_names) {
   parent_list
 }
 
+
+#' Convert JSON records to a tibble
+#'
+#' @param x Parsed JSON object from a ServCat response.
+#' @param rename_key Logical. Rename a `key` column to `code`?
+#'
+#' @returns A tibble.
+#' @keywords internal
+json_to_tibble <- function(x, rename_key = FALSE) {
+  if (length(x) == 0) {
+    return(tibble::tibble())
+  }
+
+  if (!is.null(names(x))) {
+    x <- list(x)
+  }
+
+  out <- suppressWarnings(
+    data.table::rbindlist(x, use.names = TRUE, fill = TRUE)
+  ) |>
+    tibble::as_tibble()
+
+  if (rename_key && "key" %in% names(out)) {
+    out <- dplyr::rename(out, code = .data$key)
+  }
+
+  out
+}
+
+
+#' Convert composite JSON records to a tibble
+#'
+#' @param x Parsed JSON object from a ServCat composite endpoint.
+#'
+#' @returns A tibble. Nested objects are preserved as list-columns.
+#' @keywords internal
+json_to_composite_tibble <- function(x) {
+  if (length(x) == 0) {
+    return(tibble::tibble())
+  }
+
+  if (!is.null(names(x))) {
+    x <- list(x)
+  }
+
+  rows <- lapply(x, function(record) {
+    record <- lapply(record, function(value) {
+      if (is.null(value)) {
+        return(NA)
+      }
+
+      if (is.atomic(value) && length(value) <= 1) {
+        return(value)
+      }
+
+      list(value)
+    })
+
+    tibble::as_tibble(record)
+  })
+
+  dplyr::bind_rows(rows)
+}
+
+
+#' Get a ServCat fixed list
+#'
+#' @param endpoint Fixed-list endpoint name.
+#' @param secure Logical. Use the secure API?
+#' @param api_key Optional secure API key.
+#' @param rename_key Logical. Rename a `key` column to `code`?
+#'
+#' @returns A tibble.
+#' @keywords internal
+get_fixed_list <- function(
+    endpoint,
+    secure = FALSE,
+    api_key = NULL,
+    rename_key = TRUE
+) {
+  validate_string(endpoint)
+  validate_flag(secure)
+
+  resp <- servcat_request(secure = secure, api_key = api_key) |>
+    httr2::req_url_path_append("FixedList", endpoint) |>
+    httr2::req_perform()
+
+  validate_response(resp)
+
+  httr2::resp_body_json(resp, simplifyVector = FALSE) |>
+    json_to_tibble(rename_key = rename_key)
+}
+
+
+#' Get the base URL for the ServCat API
+#'
+#' @param secure Logical. Use the secure ServCat API?
+#'
+#' @returns A length-1 character vector.
+#' @keywords internal
+base_url <- function(secure = FALSE) {
+  validate_flag(secure)
+
+  dplyr::case_when(
+    secure ~ get("servcat_secure_api", envir = .pkgglobalenv),
+    !secure ~ get("servcat_public_api", envir = .pkgglobalenv)
+  )
+}
+
+
+#' Retrieve secure ServCat API key
+#'
+#' @param env_var Environment variable name.
+#'
+#' @returns A length-1 character vector.
+#' @keywords internal
+get_api_key <- function(env_var = "SERVCAT_API_KEY") {
+  key <- Sys.getenv(env_var, unset = "")
+
+  if (identical(key, "")) {
+    cli::cli_abort(
+      "Environment variable {.val {env_var}} is not set."
+    )
+  }
+
+  key
+}
+
+
+#' Build a ServCat request
+#'
+#' @param secure Logical. Use the secure API?
+#' @param suppress_errors Logical. Suppress HTTP errors so they can be handled
+#'   by `validate_response()`.
+#' @param api_key Optional API key. If omitted for secure requests, the value is
+#'   read from `SERVCAT_API_KEY`.
+#'
+#' @returns An `httr2_request` object.
+#' @keywords internal
+servcat_request <- function(
+    secure = FALSE,
+    suppress_errors = TRUE,
+    api_key = NULL
+) {
+  validate_flag(secure)
+  validate_flag(suppress_errors)
+  
+  req <- httr2::request(base_url(secure = secure)) |>
+    httr2::req_user_agent("servcat") |>
+    httr2::req_headers(accept = "application/json") |>
+    httr2::req_timeout(60) |>
+    httr2::req_retry(max_tries = 3)
+  
+  if (secure) {
+    api_key <- rlang::`%||%`(api_key, get_api_key())
+    validate_string(api_key, arg = "api_key")
+    
+    req <- req |>
+      httr2::req_headers(`X-API-KEY` = api_key)
+  }
+  
+  if (suppress_errors) {
+    req <- req |>
+      httr2::req_error(is_error = \(resp) FALSE)
+  }
+  
+  req
+}
+
+
+#' Validate a ServCat API response
+#'
+#' @param resp An `httr2_response`.
+#' @param nice_msg_400 Optional message for 4xx errors.
+#' @param nice_msg_500 Optional message for 5xx errors.
+#' @param call Calling environment.
+#'
+#' @returns `NULL`, invisibly.
+#' @keywords internal
+validate_response <- function(
+    resp,
+    nice_msg_400,
+    nice_msg_500,
+    call = rlang::caller_env()
+) {
+  if (httr2::resp_is_error(resp)) {
+    if (missing(nice_msg_400)) {
+      nice_msg_400 <- c(
+        "i" = "There is a problem with the API request. Check reference IDs, search terms, and filters for typos.",
+        "i" = "If you are using the secure API, verify that your API key is set and valid."
+      )
+    }
+    
+    if (missing(nice_msg_500)) {
+      nice_msg_500 <- c(
+        "i" = "The ServCat service returned a server error. Try again later or confirm the endpoint is available."
+      )
+    }
+    
+    status_num <- httr2::resp_status(resp)
+    status_desc <- httr2::resp_status_desc(resp)
+    
+    nice_msg <- if (floor(status_num / 100) == 5) {
+      nice_msg_500
+    } else {
+      nice_msg_400
+    }
+    
+    api_message <- response_error_message(resp)
+    
+    msg <- c(
+      "HTTP {status_num}: {status_desc}",
+      nice_msg
+    )
+    
+    if (!is.null(api_message)) {
+      msg <- c(
+        msg,
+        "x" = "API response: {.field api_message}"
+      )
+    }
+    
+    cli::cli_abort(msg, call = call)
+  }
+  
+  invisible(NULL)
+}
+
+
+#' Sanitize a file name from ServCat metadata
+#'
+#' @param file_name File name from the ServCat API.
+#' @param fallback Fallback file name.
+#'
+#' @returns A length-1 character vector.
+#' @keywords internal
+sanitize_file_name <- function(file_name, fallback) {
+  if (length(file_name) == 0 || is.na(file_name) || !nzchar(file_name)) {
+    file_name <- fallback
+  }
+
+  file_name <- basename(as.character(file_name)[[1]])
+  file_name <- gsub("[[:cntrl:]/\\\\:*?\"<>|]+", "_", file_name, perl = TRUE)
+
+  if (!nzchar(file_name) || file_name %in% c(".", "..")) {
+    file_name <- fallback
+  }
+
+  file_name
+}
+
+
+#' Build a safe output path for a downloaded ServCat file
+#'
+#' @param path Output directory.
+#' @param file_name File name from the ServCat API.
+#' @param resource_id ServCat resource ID.
+#' @param overwrite Logical. Overwrite existing files?
+#'
+#' @returns A length-1 character vector.
+#' @keywords internal
+build_download_path <- function(path, file_name, resource_id, overwrite = FALSE) {
+  validate_flag(overwrite)
+
+  fallback <- paste0(resource_id, ".bin")
+  file_name <- sanitize_file_name(file_name, fallback = fallback)
+  output_path <- file.path(path, file_name)
+
+  if (overwrite || !file.exists(output_path)) {
+    return(output_path)
+  }
+
+  ext <- tools::file_ext(file_name)
+  stem <- if (nzchar(ext)) {
+    sub(paste0("\\.", ext, "$"), "", file_name)
+  } else {
+    file_name
+  }
+
+  i <- 0
+  repeat {
+    suffix <- if (i == 0) {
+      as.character(resource_id)
+    } else {
+      paste(resource_id, i, sep = "_")
+    }
+
+    candidate_name <- if (nzchar(ext)) {
+      paste0(stem, "_", suffix, ".", ext)
+    } else {
+      paste0(stem, "_", suffix)
+    }
+
+    candidate_path <- file.path(path, candidate_name)
+
+    if (!file.exists(candidate_path)) {
+      return(candidate_path)
+    }
+
+    i <- i + 1
+  }
+}
+
+
 #' Retrieve a batch of ServCat reference profiles
 #'
-#' @param reference_ids Numeric vector of up to 25 ServCat reference IDs
+#' @param reference_ids Numeric vector of up to 25 ServCat reference IDs.
 #' @param secure Logical. Use the secure API?
-#' @param api_key Optional secure API key
+#' @param api_key Optional secure API key.
 #'
-#' @returns A named list of ServCat profile records
+#' @returns A named list of ServCat profile records. Field names returned by the
+#'   API are preserved.
 #' @keywords internal
 get_reference_profiles_batch <- function(
-  reference_ids,
-  secure = FALSE,
-  api_key = NULL
+    reference_ids,
+    secure = FALSE,
+    api_key = NULL
 ) {
   req <- servcat_request(secure = secure, api_key = api_key) |>
     httr2::req_url_path_append("Profile") |>
     httr2::req_url_query(q = collapse_reference_ids(reference_ids)) |>
     httr2::req_perform()
-
+  
   validate_response(req)
-
+  
   response <- httr2::resp_body_json(req, simplifyVector = FALSE)
-
+  
   to_vectors <- c("keywords", "subjects")
   to_tibbles <- c("taxa", "units", "contentProducerUnits", "filesAndLinks")
-
+  
   response <- lapply(response, function(ref) {
     ref <- lists_to_vectors(ref, to_vectors)
     ref <- lists_to_tibbles(ref, to_tibbles)
-
-    if (!is.null(ref$bibliography)) {
-      names(ref$bibliography) <- stringr::str_replace(
-        names(ref$bibliography),
-        pattern = "^abstract$",
-        replacement = "description"
-      )
-    }
-
+    
     ref
   })
-
-  ids <- vapply(response, function(ref) rlang::`%||%`(ref$referenceId, NA_real_), numeric(1))
+  
+  ids <- vapply(
+    response,
+    function(ref) rlang::`%||%`(ref$referenceId, NA_real_),
+    numeric(1)
+  )
+  
   names(response) <- as.character(ids)
-
+  
   response
+}
+
+#' Clean an error message for use in returned data
+#'
+#' Removes ANSI styling and collapses whitespace so condition messages can be
+#' stored cleanly in tibble columns.
+#'
+#' @param x A condition object or character string.
+#'
+#' @returns A clean character scalar.
+#' @keywords internal
+clean_error_message <- function(x) {
+  msg <- if (inherits(x, "condition")) {
+    conditionMessage(x)
+  } else {
+    as.character(x)
+  }
+  
+  msg <- cli::ansi_strip(msg)
+  msg <- stringr::str_replace_all(msg, "\n+", " ")
+  msg <- stringr::str_squish(msg)
+  
+  # Remove common cli bullet prefixes after ANSI stripping.
+  msg <- stringr::str_replace(msg, "^!\\s*", "")
+  msg <- stringr::str_replace(msg, "^x\\s*", "")
+  msg <- stringr::str_replace(msg, "^i\\s*", "")
+  
+  msg
+}
+
+
+#' Build a clean restricted-resource message
+#'
+#' @param reference_id A ServCat reference ID.
+#' @param resource_id Optional ServCat resource ID.
+#' @param secure Logical. Is the secure API being used?
+#'
+#' @returns A clean character scalar.
+#' @keywords internal
+restricted_resource_error <- function(reference_id, resource_id = NULL, secure = FALSE) {
+  resource_part <- if (is.null(resource_id) || is.na(resource_id)) {
+    paste0("file metadata for reference ", reference_id)
+  } else {
+    paste0("file resource ", resource_id, " on reference ", reference_id)
+  }
+  
+  if (isTRUE(secure)) {
+    return(paste0(
+      "ServCat denied access to ", resource_part,
+      ". You are using the secure API, so verify that your API key is valid ",
+      "and has permission to access this internal or restricted resource."
+    ))
+  }
+  
+  paste0(
+    "ServCat denied access to ", resource_part,
+    ". This file may be internal or otherwise restricted. ",
+    "Retry with secure = TRUE and make sure SERVCAT_API_KEY is set, ",
+    "or pass api_key directly."
+  )
 }

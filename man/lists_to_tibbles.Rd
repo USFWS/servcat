@@ -7,12 +7,12 @@
 lists_to_tibbles(parent_list, child_list_names)
 }
 \arguments{
-\item{parent_list}{A ServCat profile record}
+\item{parent_list}{A ServCat profile record.}
 
-\item{child_list_names}{Element names to convert}
+\item{child_list_names}{Element names to convert.}
 }
 \value{
-A modified list
+A modified list.
 }
 \description{
 Convert nested lists in a profile to tibbles
