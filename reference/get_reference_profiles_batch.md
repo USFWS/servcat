@@ -12,7 +12,7 @@ get_reference_profiles_batch(reference_ids, secure = FALSE, api_key = NULL)
 
 - reference_ids:
 
-  Numeric vector of up to 25 ServCat reference IDs
+  Numeric vector of up to 25 ServCat reference IDs.
 
 - secure:
 
@@ -20,8 +20,9 @@ get_reference_profiles_batch(reference_ids, secure = FALSE, api_key = NULL)
 
 - api_key:
 
-  Optional secure API key
+  Optional secure API key.
 
 ## Value
 
-A named list of ServCat profile records
+A named list of ServCat profile records. Field names returned by the API
+are preserved.

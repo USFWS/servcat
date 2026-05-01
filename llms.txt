@@ -5,8 +5,8 @@ repository for U.S. Fish and Wildlife Service (FWS) data and reference
 information.
 
 Use this package to search ServCat, retrieve reference metadata, inspect
-related units and subject categories, access saved collections, and
-download files associated with ServCat references.
+related units and subject categories, access saved collections, retrieve
+lookup values, and download files associated with ServCat references.
 
 ## Installation
 
@@ -14,6 +14,7 @@ You can install the development version of `servcat` from
 [GitHub](https://github.com/USFWS) with:
 
 ``` r
+
 # install.packages("pak")
 pak::pak("USFWS/servcat")
 ```
@@ -21,85 +22,173 @@ pak::pak("USFWS/servcat")
 Then load the package:
 
 ``` r
+
 library(servcat)
 ```
 
 ## Usage
 
-### Search for references by their ID
+### Get references by ID
 
-ServCat references have unique reference IDs. If you already know the
-reference ID, you can retrieve the reference record directly.
+ServCat references have unique reference IDs. If you already know one or
+more reference IDs, use
+[`get_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_references.md)
+to retrieve detailed reference profile records.
 
 ``` r
-ref <- get_reference(140411)
+
+ref <- get_references(140411)
 
 ref
 ```
 
-This is useful when you want to inspect metadata for a known ServCat
-item, such as title, abstract, publication date, authors, associated
-files, or related organizational information.
-
-### Run an advanced search
-
-Use `advanced_search()` to search ServCat with one or more search
-criteria. Search criteria are sent in the body of a POST request, while
-paging options control how many records are returned.
+You can also pass multiple IDs. Duplicate IDs are removed before
+requests are made, and large ID vectors are automatically split into
+API-friendly chunks.
 
 ``` r
-results <- advanced_search(
+
+refs <- get_references(c(140411, 140412, 140413))
+
+refs
+```
+
+If you only need summary fields, use
+[`get_reference_summaries()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_reference_summaries.md).
+
+``` r
+
+summary_refs <- get_reference_summaries(c(140411, 140412))
+
+summary_refs
+```
+
+[`get_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_references.md)
+returns a named list because detailed ServCat profile records can
+contain nested metadata.
+[`get_reference_summaries()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_reference_summaries.md)
+returns a tibble.
+
+### Search for references
+
+Use
+[`search_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references.md)
+to run a ServCat Advanced Search with one or more search criteria.
+Search criteria are sent in the body of a POST request, while paging and
+sorting options are sent as query parameters.
+
+``` r
+
+results <- search_references(
   criteria = list(
-    quickSearch = "Kodiak goats"
+    quickSearch = "Kodiak, goats"
   ),
-  page = 1,
-  page_size = 25
+  top = 25,
+  page = 1
 )
 
 results
 ```
 
-You can combine multiple criteria in the request body:
+Page metadata from the ServCat response is stored in the `"page_detail"`
+attribute.
 
 ``` r
-results <- advanced_search(
-  criteria = list(
-    quickSearch = "wetlands",
-    title = "inventory",
-    subjectCategories = c("Habitat", "Wetlands")
-  ),
-  page = 1,
-  page_size = 50
-)
+
+attr(results, "page_detail")
 ```
 
-The exact fields available for advanced search depend on the ServCat
-API. Common criteria may include text search terms, title keywords,
-author names, subject categories, reference types, organizations, dates,
-and geographic filters.
-
-### Return composite advanced search results
-
-Some ServCat endpoints return additional composite detail for each
-reference. Use composite search when you need richer results than the
-standard advanced search response.
+You can combine multiple criteria in the request body. `NULL` values in
+`criteria` are omitted before the request body is serialized, which is
+useful for optional fields such as `logicOperator`, `fieldName`, or
+`searchText`.
 
 ``` r
-composite_results <- advanced_search(
+
+reports <- search_references(
+  criteria = list(
+    visibility = "public",
+    textFields = list(
+      list(
+        order = 1,
+        logicOperator = NULL,
+        fieldName = "Title",
+        searchText = "mountain goat"
+      )
+    ),
+    digitalResources = list(
+      list(
+        order = 2,
+        logicOperator = "AND",
+        type = "DigitalFile",
+        fieldName = NULL,
+        searchText = NULL
+      )
+    )
+  ),
+  top = 100,
+  page = 1,
+  orderby = "dateOfIssue",
+  sort = "DESC"
+)
+
+reports
+```
+
+Common criteria include quick search terms, visibility, legacy status,
+version filters, regions, units, text fields, dates, reference types,
+reference groups, bounding boxes, subject categories, digital resources,
+physical copies, saved collections, and people.
+
+### Retrieve all search-result pages
+
+[`search_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references.md)
+returns one page by default. Set `all_pages = TRUE` to retrieve pages
+sequentially and combine them into one tibble.
+
+``` r
+
+all_results <- search_references(
   criteria = list(
     quickSearch = "Kodiak, goats"
   ),
+  top = 100,
+  all_pages = TRUE
+)
+
+all_results
+```
+
+When `all_pages = TRUE`, the `"page_detail"` attribute contains metadata
+for all pages retrieved.
+
+``` r
+
+attr(all_results, "page_detail")
+```
+
+### Return composite search results
+
+Some ServCat endpoints return additional composite detail for each
+reference. Set `composite = TRUE` when you need richer results than the
+standard advanced search response.
+
+``` r
+
+composite_results <- search_references(
+  criteria = list(
+    quickSearch = "Kodiak, goats"
+  ),
+  top = 25,
   page = 1,
-  page_size = 25,
   composite = TRUE
 )
 
 composite_results
 ```
 
-Composite results may include additional nested information about the
-reference, such as related files, organizations, people, subjects, or
-other associated metadata.
+Composite results may include list-columns with nested information such
+as linked resources and associated units.
 
 ### Retrieve references from a saved collection
 
@@ -109,6 +198,7 @@ with a saved collection ID to retrieve the references in that
 collection.
 
 ``` r
+
 collection_refs <- get_collection_references(1397)
 
 collection_refs
@@ -118,17 +208,104 @@ This is useful when working with curated groups of references, such as
 project collections, regional datasets, or topic-based ServCat
 collections.
 
+### Retrieve metadata for a reference
+
+After identifying a reference ID, use the metadata helpers to retrieve
+additional information about the reference.
+
+``` r
+
+reference_id <- 140411
+
+owners <- get_owners(reference_id)
+keywords <- get_keywords(reference_id)
+links <- get_links(reference_id)
+files <- get_files(reference_id)
+bibliography <- get_bibliography(reference_id)
+lifecycle <- get_lifecycle(reference_id)
+units <- get_units(reference_id)
+bboxes <- get_bboxes(reference_id)
+subjects <- get_subjects(reference_id)
+taxa <- get_taxa(reference_id)
+```
+
+These functions return R objects that can be used directly in analysis,
+reporting, or downstream data workflows. Most metadata helpers return
+tibbles. Some metadata endpoints return named lists because the ServCat
+API response is nested or irregular.
+
+### Get file metadata
+
+Use
+[`get_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_files.md)
+to inspect the digital files attached to a reference before downloading
+them.
+
+``` r
+
+files <- get_files(140411)
+
+files
+```
+
+To retrieve metadata for one specific file, pass a ServCat resource ID
+as `file_id`.
+
+``` r
+
+one_file <- get_files(
+  reference_id = 140411,
+  file_id = files$resourceId[[1]]
+)
+
+one_file
+```
+
+When available,
+[`get_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_files.md)
+preserves the API’s `fileSize` field and adds `fileSize_kb` for
+convenience.
+
 ### Download files from a reference
 
 Many ServCat references include one or more associated files. Use
-[`download_reference_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_reference_files.md)
+[`download_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_files.md)
 to download files attached to a reference.
 
 ``` r
-download_reference_files(
+
+downloaded_files <- download_files(
   reference_id = 140411,
   path = "data-raw/servcat-files"
 )
+
+downloaded_files
+```
+
+[`download_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_files.md)
+returns one row per requested file, including the local path, ServCat
+resource ID, download link, `success`, and `error`. Failed downloads are
+reported in the returned tibble instead of stopping the whole batch.
+
+``` r
+
+downloaded_files[, c("resourceId", "localPath", "success", "error")]
+```
+
+To download only selected files, pass one or more ServCat resource IDs
+with `resource_ids`.
+
+``` r
+
+files <- get_files(140411)
+
+downloaded_file <- download_files(
+  reference_id = 140411,
+  resource_ids = files$resourceId[1],
+  path = "data-raw/servcat-files"
+)
+
+downloaded_file
 ```
 
 You can also use this function in a loop or with
@@ -136,99 +313,113 @@ You can also use this function in a loop or with
 to download files from multiple references.
 
 ``` r
+
 reference_ids <- c(140411, 140412, 140413)
 
-lapply(
+downloads <- lapply(
   reference_ids,
-  download_reference_files,
+  download_files,
   path = "data-raw/servcat-files"
 )
+
+downloads
 ```
 
-### Get units associated with a reference
+### Use lookup lists
 
-ServCat references can be associated with one or more FWS units. Use
-`get_reference_units()` to retrieve those units.
+The lookup-list helpers return ServCat fixed lists and service metadata.
+These are useful when building search criteria, validating inputs, or
+checking supported ServCat values.
 
 ``` r
-units <- get_reference_units(140411)
 
-units
+access_constraints <- list_access_constraints()
+date_precisions <- list_date_precisions()
+file_tags <- list_file_tags()
+reference_type_groups <- list_reference_type_groups()
+reference_types <- list_reference_types()
+subject_categories <- list_subject_categories()
+web_service_types <- list_web_service_types()
+version <- service_version()
 ```
 
-### Get geographic bounding boxes
-
-Use `get_reference_bounding_boxes()` to retrieve geographic bounding box
-coordinates associated with a reference.
-
-``` r
-bbox <- get_reference_bounding_boxes(140411)
-
-bbox
-```
-
-Bounding boxes can help identify the geographic extent of a reference
-and may be useful for mapping or spatial filtering workflows.
-
-### Get subject categories
-
-Use `get_reference_subjects()` to retrieve the subject categories
-associated with a ServCat reference.
+For example, use
+[`list_reference_types()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_reference_types.md)
+when you need valid reference type values for search criteria.
 
 ``` r
-subjects <- get_reference_subjects(140411)
 
-subjects
-```
-
-Subject categories can help classify references by topic and support
-more targeted searches.
-
-### Get reference types
-
-Use
-[`get_reference_types()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_reference_types.md)
-to retrieve the list of ServCat reference types.
-
-``` r
-reference_types <- get_reference_types()
+reference_types <- list_reference_types()
 
 reference_types
 ```
 
-Reference types can be useful when building advanced searches or
-filtering results to particular kinds of records.
+### Use the secure API
+
+Most public-data functions include a `secure` argument. Set
+`secure = TRUE` to use the secure ServCat API. If `api_key` is omitted,
+the package reads the API key from the `SERVCAT_API_KEY` environment
+variable.
+
+``` r
+
+secure_ref <- get_references(
+  reference_ids = 140411,
+  secure = TRUE
+)
+
+secure_keywords <- get_keywords(
+  reference_id = 140411,
+  secure = TRUE
+)
+```
+
+Some functions are secure-only because their ServCat endpoints are
+available through the secure API.
+
+``` r
+
+owners <- get_owners(140411)
+bibliography <- get_bibliography(140411)
+lifecycle <- get_lifecycle(140411)
+```
 
 ## Example workflow
 
 A typical workflow might look like this:
 
 ``` r
+
 library(servcat)
 
 # Search ServCat
-results <- advanced_search(
+results <- search_references(
   criteria = list(
-    quickSearch = "Kodiak goats"
+    quickSearch = "Kodiak, goats"
   ),
-  page = 1,
-  page_size = 10,
-  composite = TRUE
+  top = 100,
+  composite = TRUE,
+  all_pages = TRUE
 )
 
-# Inspect one reference ID from the results
-ref <- get_reference(140411)
+# Inspect a known reference ID
+ref <- get_references(140411)
 
 # Retrieve related metadata
-units <- get_reference_units(140411)
-subjects <- get_reference_subjects(140411)
-bbox <- get_reference_bounding_boxes(140411)
+keywords <- get_keywords(140411)
+files <- get_files(140411)
+units <- get_units(140411)
+subjects <- get_subjects(140411)
+bboxes <- get_bboxes(140411)
+taxa <- get_taxa(140411)
 
-# Download associated files
-download_reference_files(
+# Download associated files and inspect per-file status
+downloaded_files <- download_files(
   reference_id = 140411,
   path = "data-raw/servcat-files"
 )
+
+downloaded_files[, c("resourceId", "success", "error")]
 ```
 
 ## Notes
@@ -240,14 +431,13 @@ Because ServCat records can vary in structure, some returned fields may
 be missing, empty, or nested depending on the reference, endpoint, and
 search type used.
 
+HTTP requests include retry and timeout behavior, and API error messages
+include response-body details when available.
+
 ## Getting help
 
 Contact a [project maintainer](mailto:mccrea_cobb@fws.gov) for help with
 this repository.
-
-If you have general questions on creating repositories in the USFWS
-DGEC, reach out to a USFWS DGEC
-[owner](https://github.com/orgs/USFWS/people?query=role%3Aowner).
 
 ## Contribute
 
@@ -275,38 +465,65 @@ License](https://creativecommons.org/publicdomain/zero/1.0/).
 
 ## All functions
 
-- [`download_reference_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_reference_files.md)
+- [`download_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_files.md)
   : Download files from a ServCat reference
+- [`get_bboxes()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_bboxes.md)
+  : Get bounding boxes from a ServCat reference
 - [`get_bibliography()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_bibliography.md)
-  : Get bibliography metadata for a ServCat reference from the secure
-  ServCat API
-- [`get_bounding_boxes()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_bounding_boxes.md)
-  : Get geographic bounding boxes from a ServCat reference
+  : Get bibliography metadata for a ServCat reference
 - [`get_collection_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_collection_references.md)
   : Get references in a saved collection
-- [`get_external_links()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_external_links.md)
-  : Get external links from a ServCat reference
-- [`get_file_info()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_file_info.md)
-  : Get digital file metadata from a ServCat reference
+- [`get_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_files.md)
+  : Get digital file information from a ServCat reference
 - [`get_keywords()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_keywords.md)
   : Get keywords from a ServCat reference
-- [`get_lifecycle_info()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_lifecycle_info.md)
-  : Get lifecycle information from the secure ServCat API
-- [`get_reference_owners()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_reference_owners.md)
-  : Get reference owners from the secure ServCat API
+- [`get_lifecycle()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_lifecycle.md)
+  : Get lifecycle information for a ServCat reference
+- [`get_links()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_links.md)
+  : Get links from a ServCat reference
+- [`get_owners()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_owners.md)
+  : Get owners for a ServCat reference
+- [`get_reference_summaries()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_reference_summaries.md)
+  : Get ServCat reference summaries by ID
+- [`get_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_references.md)
+  : Get ServCat references by ID
 - [`get_subjects()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_subjects.md)
   : Get subject categories from a ServCat reference
 - [`get_taxa()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_taxa.md)
   : Get taxa associated with a ServCat reference
 - [`get_units()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_units.md)
   : Get units associated with a ServCat reference
-- [`search_references_advanced()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references_advanced.md)
-  : Execute an Advanced Search
-- [`search_references_by_id()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references_by_id.md)
-  : Search ServCat references by ID
-- [`search_references_by_id_basic()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references_by_id_basic.md)
-  : Search ServCat references by ID and return basic fields
+- [`list_access_constraints()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_access_constraints.md)
+  : List valid ServCat access constraint text
+- [`list_date_precisions()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_date_precisions.md)
+  : List valid ServCat date precision choices
+- [`list_file_tags()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_file_tags.md)
+  : List valid ServCat file processing tags
+- [`list_reference_type_groups()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_reference_type_groups.md)
+  : List valid ServCat reference type groups
+- [`list_reference_types()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_reference_types.md)
+  : List valid ServCat reference types
+- [`list_subject_categories()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_subject_categories.md)
+  : List valid ServCat subject categories
+- [`list_web_service_types()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_web_service_types.md)
+  : List valid ServCat web service types
+- [`search_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references.md)
+  : Search ServCat references
 - [`servcat`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/servcat-package.md)
   [`servcat-package`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/servcat-package.md)
   : servcat: Access the ServCat REST API
+- [`service_version()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/service_version.md)
+  : Get the current ServCat service version
 
+# Articles
+
+### All vignettes
+
+- [Use ServCat Files in a RAG
+  Store](https://ideal-adventure-2qyoqkw.pages.github.io/articles/rag_download.md):
+
+  Search ServCat, download topic-specific files, and use them as source
+  documents for a RAG workflow.
+
+- [Storing your ServCat API
+  key](https://ideal-adventure-2qyoqkw.pages.github.io/articles/storing_api_key.md):

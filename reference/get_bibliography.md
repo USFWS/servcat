@@ -1,7 +1,8 @@
-# Get bibliography metadata for a ServCat reference from the secure ServCat API
+# Get bibliography metadata for a ServCat reference
 
-Get bibliography metadata for a ServCat reference from the secure
-ServCat API
+Retrieves bibliography metadata for a ServCat reference from the secure
+ServCat API. This endpoint requires a valid `SERVCAT_API_KEY`
+environment variable unless `api_key` is supplied directly.
 
 ## Usage
 
@@ -22,7 +23,8 @@ get_bibliography(reference_id, api_key = NULL)
 
 ## Value
 
-A named list.
+A named list. Field names returned by the API are preserved, including
+`abstract` when present.
 
 ## Examples
 

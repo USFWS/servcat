@@ -16,4 +16,4 @@ base_url(secure = FALSE)
 
 ## Value
 
-A length-1 character vector
+A length-1 character vector.

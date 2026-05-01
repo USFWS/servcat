@@ -1,0 +1,221 @@
+# Storing your ServCat API key
+
+Some `servcat` functions may require a ServCat API key. The recommended
+way to provide this key is to store it as an **environment variable**
+instead of typing it directly into your scripts.
+
+This keeps your key out of your project files, reduces the chance of
+accidentally committing it to GitHub, and lets `servcat` find the key
+automatically when needed.
+
+## Why use an environment variable?
+
+Avoid writing API keys directly in scripts like this:
+
+``` r
+
+api_key <- "your-api-key-here"
+```
+
+That approach is risky because the key can easily be saved in your R
+history, shared in a script, or committed to a public repository.
+
+Instead, store the key outside your project code and read it when
+needed:
+
+``` r
+
+Sys.getenv("SERVCAT_API_KEY")
+```
+
+## Store your key in `.Renviron`
+
+The easiest persistent option is to save your key in your user-level
+`.Renviron` file.
+
+Open your `.Renviron` file with:
+
+``` r
+
+usethis::edit_r_environ()
+```
+
+If you do not have the `usethis` package installed, install it first:
+
+``` r
+
+install.packages("usethis")
+```
+
+Then add a line like this to the file:
+
+``` text
+SERVCAT_API_KEY=your-api-key-here
+```
+
+Do not put quotation marks around the key unless the key itself contains
+characters that require quoting.
+
+After saving the file, restart R so the new environment variable is
+loaded.
+
+## Check that R can find your key
+
+After restarting R, check that the environment variable is available:
+
+``` r
+
+Sys.getenv("SERVCAT_API_KEY")
+```
+
+If R returns your key, it is available for use.
+
+To avoid printing the full key, you can check whether it is set:
+
+``` r
+
+nzchar(Sys.getenv("SERVCAT_API_KEY"))
+```
+
+A result of `TRUE` means R found a non-empty value.
+
+## Use the key with `servcat`
+
+Once the key is stored, `servcat` can read it from your environment. For
+example:
+
+``` r
+
+library(servcat)
+
+refs <- get_references(c(140411, 140412))
+refs
+```
+
+If your session cannot find the key, restart R and check:
+
+``` r
+
+Sys.getenv("SERVCAT_API_KEY")
+```
+
+## Temporary API key setup
+
+For a single R session, you can set the key with:
+
+``` r
+
+Sys.setenv(SERVCAT_API_KEY = "your-api-key-here")
+```
+
+This only lasts for the current R session. When you restart R, the value
+will be gone.
+
+For routine use, prefer storing the key in `.Renviron`.
+
+## Keep your key out of Git
+
+Never commit your API key to GitHub.
+
+You should not store your API key in files such as:
+
+- `README.qmd`
+- `README.md`
+- example scripts
+- vignettes
+- tests
+- `.Rprofile`
+- project-specific `.Renviron` files committed to the repository
+
+If you use a project-level `.Renviron` file, add it to `.gitignore`:
+
+``` text
+.Renviron
+```
+
+You can check whether Git is tracking the file with:
+
+``` r
+
+system("git status --short")
+```
+
+## Using an API key in GitHub Actions
+
+If the package website is built with GitHub Actions and the build needs
+to run code that uses the ServCat API, store the key as a GitHub Actions
+secret.
+
+In your repository on GitHub:
+
+1.  Go to **Settings**.
+2.  Go to **Secrets and variables**.
+3.  Choose **Actions**.
+4.  Add a new repository secret named `SERVCAT_API_KEY`.
+
+Then expose it to the pkgdown workflow as an environment variable:
+
+``` yaml
+env:
+  SERVCAT_API_KEY: ${{ secrets.SERVCAT_API_KEY }}
+```
+
+Do not hard-code the key directly in the workflow file.
+
+## Troubleshooting
+
+### `Sys.getenv("SERVCAT_API_KEY")` returns an empty string
+
+R could not find the variable. Check that:
+
+- the variable name is spelled exactly as `SERVCAT_API_KEY`
+- the line was saved in your user-level `.Renviron`
+- R was restarted after editing `.Renviron`
+- there are no extra spaces around the variable name
+
+The `.Renviron` line should look like this:
+
+``` text
+SERVCAT_API_KEY=your-api-key-here
+```
+
+not this:
+
+``` text
+SERVCAT_API_KEY = your-api-key-here
+```
+
+### The key works in one project but not another
+
+The key may have been set only for a single R session or only for one
+project. For regular use across projects, store it in your user-level
+`.Renviron` file with:
+
+``` r
+
+usethis::edit_r_environ()
+```
+
+### I accidentally committed my key
+
+If an API key was committed to GitHub, remove it from the repository and
+rotate or revoke the key. Removing the key from the latest commit is not
+enough if it still exists in the Git history.
+
+## Summary
+
+Use this pattern for persistent local setup:
+
+``` text
+SERVCAT_API_KEY=your-api-key-here
+```
+
+Then restart R and confirm that the key is available:
+
+``` r
+
+nzchar(Sys.getenv("SERVCAT_API_KEY"))
+```
+
+After that, `servcat` functions can use the key without requiring you to
+place it directly in your scripts.

@@ -12,15 +12,15 @@ validate_flag(x, arg = rlang::caller_arg(x), call = rlang::caller_env())
 
 - x:
 
-  Value to validate
+  Value to validate.
 
 - arg:
 
-  Used to generate helpful error messages
+  Used to generate helpful error messages.
 
 - call:
 
-  Calling environment
+  Calling environment.
 
 ## Value
 

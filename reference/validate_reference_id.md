@@ -17,7 +17,7 @@ validate_reference_id(
 
 - reference_id:
 
-  ServCat reference ID or IDs
+  ServCat reference ID or IDs.
 
 - multiple_ok:
 
@@ -25,11 +25,11 @@ validate_reference_id(
 
 - arg:
 
-  Used to generate helpful error messages
+  Used to generate helpful error messages.
 
 - call:
 
-  Calling environment
+  Calling environment.
 
 ## Value
 

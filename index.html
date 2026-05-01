@@ -38,6 +38,13 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/rag_download.html">Use ServCat Files in a RAG Store</a></li>
+    <li><a class="dropdown-item" href="articles/storing_api_key.html">Storing your ServCat API key</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -59,7 +66,7 @@
 </h1>
 </div>
 <p><code>servcat</code> provides an R interface to ServCat, the authoritative repository for U.S. Fish and Wildlife Service (FWS) data and reference information.</p>
-<p>Use this package to search ServCat, retrieve reference metadata, inspect related units and subject categories, access saved collections, and download files associated with ServCat references.</p>
+<p>Use this package to search ServCat, retrieve reference metadata, inspect related units and subject categories, access saved collections, retrieve lookup values, and download files associated with ServCat references.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -75,170 +82,280 @@
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <div class="section level3">
-<h3 id="search-for-references-by-their-id">Search for references by their ID<a class="anchor" aria-label="anchor" href="#search-for-references-by-their-id"></a>
+<h3 id="get-references-by-id">Get references by ID<a class="anchor" aria-label="anchor" href="#get-references-by-id"></a>
 </h3>
-<p>ServCat references have unique reference IDs. If you already know the reference ID, you can retrieve the reference record directly.</p>
+<p>ServCat references have unique reference IDs. If you already know one or more reference IDs, use <code><a href="reference/get_references.html">get_references()</a></code> to retrieve detailed reference profile records.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ref</span> <span class="op">&lt;-</span> <span class="fu">get_reference</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_references.html">get_references</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">ref</span></span></code></pre></div>
-<p>This is useful when you want to inspect metadata for a known ServCat item, such as title, abstract, publication date, authors, associated files, or related organizational information.</p>
-</div>
-<div class="section level3">
-<h3 id="run-an-advanced-search">Run an advanced search<a class="anchor" aria-label="anchor" href="#run-an-advanced-search"></a>
-</h3>
-<p>Use <code>advanced_search()</code> to search ServCat with one or more search criteria. Search criteria are sent in the body of a POST request, while paging options control how many records are returned.</p>
+<p>You can also pass multiple IDs. Duplicate IDs are removed before requests are made, and large ID vectors are automatically split into API-friendly chunks.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">advanced_search</span><span class="op">(</span></span>
-<span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    quickSearch <span class="op">=</span> <span class="st">"Kodiak goats"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  page <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  page_size <span class="op">=</span> <span class="fl">25</span></span>
-<span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">refs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_references.html">get_references</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">140411</span>, <span class="fl">140412</span>, <span class="fl">140413</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">results</span></span></code></pre></div>
-<p>You can combine multiple criteria in the request body:</p>
+<span><span class="va">refs</span></span></code></pre></div>
+<p>If you only need summary fields, use <code><a href="reference/get_reference_summaries.html">get_reference_summaries()</a></code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">advanced_search</span><span class="op">(</span></span>
-<span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    quickSearch <span class="op">=</span> <span class="st">"wetlands"</span>,</span>
-<span>    title <span class="op">=</span> <span class="st">"inventory"</span>,</span>
-<span>    subjectCategories <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Habitat"</span>, <span class="st">"Wetlands"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  page <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  page_size <span class="op">=</span> <span class="fl">50</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>The exact fields available for advanced search depend on the ServCat API. Common criteria may include text search terms, title keywords, author names, subject categories, reference types, organizations, dates, and geographic filters.</p>
+<code class="sourceCode R"><span><span class="va">summary_refs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_reference_summaries.html">get_reference_summaries</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">140411</span>, <span class="fl">140412</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">summary_refs</span></span></code></pre></div>
+<p><code><a href="reference/get_references.html">get_references()</a></code> returns a named list because detailed ServCat profile records can contain nested metadata. <code><a href="reference/get_reference_summaries.html">get_reference_summaries()</a></code> returns a tibble.</p>
 </div>
 <div class="section level3">
-<h3 id="return-composite-advanced-search-results">Return composite advanced search results<a class="anchor" aria-label="anchor" href="#return-composite-advanced-search-results"></a>
+<h3 id="search-for-references">Search for references<a class="anchor" aria-label="anchor" href="#search-for-references"></a>
 </h3>
-<p>Some ServCat endpoints return additional composite detail for each reference. Use composite search when you need richer results than the standard advanced search response.</p>
+<p>Use <code><a href="reference/search_references.html">search_references()</a></code> to run a ServCat Advanced Search with one or more search criteria. Search criteria are sent in the body of a POST request, while paging and sorting options are sent as query parameters.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">composite_results</span> <span class="op">&lt;-</span> <span class="fu">advanced_search</span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/search_references.html">search_references</a></span><span class="op">(</span></span>
 <span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>    quickSearch <span class="op">=</span> <span class="st">"Kodiak, goats"</span></span>
 <span>  <span class="op">)</span>,</span>
+<span>  top <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  page <span class="op">=</span> <span class="fl">1</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">results</span></span></code></pre></div>
+<p>Page metadata from the ServCat response is stored in the <code>"page_detail"</code> attribute.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">results</span>, <span class="st">"page_detail"</span><span class="op">)</span></span></code></pre></div>
+<p>You can combine multiple criteria in the request body. <code>NULL</code> values in <code>criteria</code> are omitted before the request body is serialized, which is useful for optional fields such as <code>logicOperator</code>, <code>fieldName</code>, or <code>searchText</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">reports</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/search_references.html">search_references</a></span><span class="op">(</span></span>
+<span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    visibility <span class="op">=</span> <span class="st">"public"</span>,</span>
+<span>    textFields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        order <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        logicOperator <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>        fieldName <span class="op">=</span> <span class="st">"Title"</span>,</span>
+<span>        searchText <span class="op">=</span> <span class="st">"mountain goat"</span></span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    digitalResources <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>        order <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>        logicOperator <span class="op">=</span> <span class="st">"AND"</span>,</span>
+<span>        type <span class="op">=</span> <span class="st">"DigitalFile"</span>,</span>
+<span>        fieldName <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>        searchText <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>      <span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  top <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  page <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  page_size <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  orderby <span class="op">=</span> <span class="st">"dateOfIssue"</span>,</span>
+<span>  sort <span class="op">=</span> <span class="st">"DESC"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">reports</span></span></code></pre></div>
+<p>Common criteria include quick search terms, visibility, legacy status, version filters, regions, units, text fields, dates, reference types, reference groups, bounding boxes, subject categories, digital resources, physical copies, saved collections, and people.</p>
+</div>
+<div class="section level3">
+<h3 id="retrieve-all-search-result-pages">Retrieve all search-result pages<a class="anchor" aria-label="anchor" href="#retrieve-all-search-result-pages"></a>
+</h3>
+<p><code><a href="reference/search_references.html">search_references()</a></code> returns one page by default. Set <code>all_pages = TRUE</code> to retrieve pages sequentially and combine them into one tibble.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">all_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/search_references.html">search_references</a></span><span class="op">(</span></span>
+<span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    quickSearch <span class="op">=</span> <span class="st">"Kodiak, goats"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  top <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  all_pages <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">all_results</span></span></code></pre></div>
+<p>When <code>all_pages = TRUE</code>, the <code>"page_detail"</code> attribute contains metadata for all pages retrieved.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">all_results</span>, <span class="st">"page_detail"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="return-composite-search-results">Return composite search results<a class="anchor" aria-label="anchor" href="#return-composite-search-results"></a>
+</h3>
+<p>Some ServCat endpoints return additional composite detail for each reference. Set <code>composite = TRUE</code> when you need richer results than the standard advanced search response.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">composite_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/search_references.html">search_references</a></span><span class="op">(</span></span>
+<span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    quickSearch <span class="op">=</span> <span class="st">"Kodiak, goats"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  top <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  page <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  composite <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">composite_results</span></span></code></pre></div>
-<p>Composite results may include additional nested information about the reference, such as related files, organizations, people, subjects, or other associated metadata.</p>
+<p>Composite results may include list-columns with nested information such as linked resources and associated units.</p>
 </div>
 <div class="section level3">
 <h3 id="retrieve-references-from-a-saved-collection">Retrieve references from a saved collection<a class="anchor" aria-label="anchor" href="#retrieve-references-from-a-saved-collection"></a>
 </h3>
 <p>ServCat saved collections group related references. Use <code><a href="reference/get_collection_references.html">get_collection_references()</a></code> with a saved collection ID to retrieve the references in that collection.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">collection_refs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_collection_references.html">get_collection_references</a></span><span class="op">(</span><span class="fl">1397</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">collection_refs</span></span></code></pre></div>
 <p>This is useful when working with curated groups of references, such as project collections, regional datasets, or topic-based ServCat collections.</p>
 </div>
 <div class="section level3">
+<h3 id="retrieve-metadata-for-a-reference">Retrieve metadata for a reference<a class="anchor" aria-label="anchor" href="#retrieve-metadata-for-a-reference"></a>
+</h3>
+<p>After identifying a reference ID, use the metadata helpers to retrieve additional information about the reference.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">reference_id</span> <span class="op">&lt;-</span> <span class="fl">140411</span></span>
+<span></span>
+<span><span class="va">owners</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_owners.html">get_owners</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">keywords</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_keywords.html">get_keywords</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">links</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_links.html">get_links</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">files</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_files.html">get_files</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">bibliography</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_bibliography.html">get_bibliography</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">lifecycle</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_lifecycle.html">get_lifecycle</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">units</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_units.html">get_units</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">bboxes</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_bboxes.html">get_bboxes</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_subjects.html">get_subjects</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span>
+<span><span class="va">taxa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_taxa.html">get_taxa</a></span><span class="op">(</span><span class="va">reference_id</span><span class="op">)</span></span></code></pre></div>
+<p>These functions return R objects that can be used directly in analysis, reporting, or downstream data workflows. Most metadata helpers return tibbles. Some metadata endpoints return named lists because the ServCat API response is nested or irregular.</p>
+</div>
+<div class="section level3">
+<h3 id="get-file-metadata">Get file metadata<a class="anchor" aria-label="anchor" href="#get-file-metadata"></a>
+</h3>
+<p>Use <code><a href="reference/get_files.html">get_files()</a></code> to inspect the digital files attached to a reference before downloading them.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">files</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_files.html">get_files</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">files</span></span></code></pre></div>
+<p>To retrieve metadata for one specific file, pass a ServCat resource ID as <code>file_id</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">one_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_files.html">get_files</a></span><span class="op">(</span></span>
+<span>  reference_id <span class="op">=</span> <span class="fl">140411</span>,</span>
+<span>  file_id <span class="op">=</span> <span class="va">files</span><span class="op">$</span><span class="va">resourceId</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">one_file</span></span></code></pre></div>
+<p>When available, <code><a href="reference/get_files.html">get_files()</a></code> preserves the API’s <code>fileSize</code> field and adds <code>fileSize_kb</code> for convenience.</p>
+</div>
+<div class="section level3">
 <h3 id="download-files-from-a-reference">Download files from a reference<a class="anchor" aria-label="anchor" href="#download-files-from-a-reference"></a>
 </h3>
-<p>Many ServCat references include one or more associated files. Use <code><a href="reference/download_reference_files.html">download_reference_files()</a></code> to download files attached to a reference.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/download_reference_files.html">download_reference_files</a></span><span class="op">(</span></span>
+<p>Many ServCat references include one or more associated files. Use <code><a href="reference/download_files.html">download_files()</a></code> to download files attached to a reference.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">downloaded_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/download_files.html">download_files</a></span><span class="op">(</span></span>
 <span>  reference_id <span class="op">=</span> <span class="fl">140411</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"data-raw/servcat-files"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">downloaded_files</span></span></code></pre></div>
+<p><code><a href="reference/download_files.html">download_files()</a></code> returns one row per requested file, including the local path, ServCat resource ID, download link, <code>success</code>, and <code>error</code>. Failed downloads are reported in the returned tibble instead of stopping the whole batch.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">downloaded_files</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"resourceId"</span>, <span class="st">"localPath"</span>, <span class="st">"success"</span>, <span class="st">"error"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<p>To download only selected files, pass one or more ServCat resource IDs with <code>resource_ids</code>.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">files</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_files.html">get_files</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">downloaded_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/download_files.html">download_files</a></span><span class="op">(</span></span>
+<span>  reference_id <span class="op">=</span> <span class="fl">140411</span>,</span>
+<span>  resource_ids <span class="op">=</span> <span class="va">files</span><span class="op">$</span><span class="va">resourceId</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  path <span class="op">=</span> <span class="st">"data-raw/servcat-files"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">downloaded_file</span></span></code></pre></div>
 <p>You can also use this function in a loop or with <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply()</a></code>/<code><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">purrr::map()</a></code> to download files from multiple references.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">reference_ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">140411</span>, <span class="fl">140412</span>, <span class="fl">140413</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
+<span><span class="va">downloads</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
 <span>  <span class="va">reference_ids</span>,</span>
-<span>  <span class="va">download_reference_files</span>,</span>
+<span>  <span class="va">download_files</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"data-raw/servcat-files"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="get-units-associated-with-a-reference">Get units associated with a reference<a class="anchor" aria-label="anchor" href="#get-units-associated-with-a-reference"></a>
-</h3>
-<p>ServCat references can be associated with one or more FWS units. Use <code>get_reference_units()</code> to retrieve those units.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">units</span> <span class="op">&lt;-</span> <span class="fu">get_reference_units</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">units</span></span></code></pre></div>
+<span><span class="va">downloads</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="get-geographic-bounding-boxes">Get geographic bounding boxes<a class="anchor" aria-label="anchor" href="#get-geographic-bounding-boxes"></a>
+<h3 id="use-lookup-lists">Use lookup lists<a class="anchor" aria-label="anchor" href="#use-lookup-lists"></a>
 </h3>
-<p>Use <code>get_reference_bounding_boxes()</code> to retrieve geographic bounding box coordinates associated with a reference.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu">get_reference_bounding_boxes</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">bbox</span></span></code></pre></div>
-<p>Bounding boxes can help identify the geographic extent of a reference and may be useful for mapping or spatial filtering workflows.</p>
-</div>
-<div class="section level3">
-<h3 id="get-subject-categories">Get subject categories<a class="anchor" aria-label="anchor" href="#get-subject-categories"></a>
-</h3>
-<p>Use <code>get_reference_subjects()</code> to retrieve the subject categories associated with a ServCat reference.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu">get_reference_subjects</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">subjects</span></span></code></pre></div>
-<p>Subject categories can help classify references by topic and support more targeted searches.</p>
-</div>
-<div class="section level3">
-<h3 id="get-reference-types">Get reference types<a class="anchor" aria-label="anchor" href="#get-reference-types"></a>
-</h3>
-<p>Use <code><a href="reference/get_reference_types.html">get_reference_types()</a></code> to retrieve the list of ServCat reference types.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">reference_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_reference_types.html">get_reference_types</a></span><span class="op">(</span><span class="op">)</span></span>
+<p>The lookup-list helpers return ServCat fixed lists and service metadata. These are useful when building search criteria, validating inputs, or checking supported ServCat values.</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">access_constraints</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_access_constraints.html">list_access_constraints</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">date_precisions</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_date_precisions.html">list_date_precisions</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">file_tags</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_file_tags.html">list_file_tags</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">reference_type_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_reference_type_groups.html">list_reference_type_groups</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">reference_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_reference_types.html">list_reference_types</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">subject_categories</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_subject_categories.html">list_subject_categories</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">web_service_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_web_service_types.html">list_web_service_types</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">version</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/service_version.html">service_version</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>For example, use <code><a href="reference/list_reference_types.html">list_reference_types()</a></code> when you need valid reference type values for search criteria.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">reference_types</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/list_reference_types.html">list_reference_types</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">reference_types</span></span></code></pre></div>
-<p>Reference types can be useful when building advanced searches or filtering results to particular kinds of records.</p>
+</div>
+<div class="section level3">
+<h3 id="use-the-secure-api">Use the secure API<a class="anchor" aria-label="anchor" href="#use-the-secure-api"></a>
+</h3>
+<p>Most public-data functions include a <code>secure</code> argument. Set <code>secure = TRUE</code> to use the secure ServCat API. If <code>api_key</code> is omitted, the package reads the API key from the <code>SERVCAT_API_KEY</code> environment variable.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">secure_ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_references.html">get_references</a></span><span class="op">(</span></span>
+<span>  reference_ids <span class="op">=</span> <span class="fl">140411</span>,</span>
+<span>  secure <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">secure_keywords</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_keywords.html">get_keywords</a></span><span class="op">(</span></span>
+<span>  reference_id <span class="op">=</span> <span class="fl">140411</span>,</span>
+<span>  secure <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Some functions are secure-only because their ServCat endpoints are available through the secure API.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">owners</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_owners.html">get_owners</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">bibliography</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_bibliography.html">get_bibliography</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">lifecycle</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_lifecycle.html">get_lifecycle</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="example-workflow">Example workflow<a class="anchor" aria-label="anchor" href="#example-workflow"></a>
 </h2>
 <p>A typical workflow might look like this:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://USFWS.github.io/servcat/" class="external-link">servcat</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Search ServCat</span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">advanced_search</span><span class="op">(</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/search_references.html">search_references</a></span><span class="op">(</span></span>
 <span>  criteria <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    quickSearch <span class="op">=</span> <span class="st">"Kodiak goats"</span></span>
+<span>    quickSearch <span class="op">=</span> <span class="st">"Kodiak, goats"</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>  page <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  page_size <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  composite <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  top <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  composite <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  all_pages <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Inspect one reference ID from the results</span></span>
-<span><span class="va">ref</span> <span class="op">&lt;-</span> <span class="fu">get_reference</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="co"># Inspect a known reference ID</span></span>
+<span><span class="va">ref</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_references.html">get_references</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Retrieve related metadata</span></span>
-<span><span class="va">units</span> <span class="op">&lt;-</span> <span class="fu">get_reference_units</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
-<span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu">get_reference_subjects</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
-<span><span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu">get_reference_bounding_boxes</span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">keywords</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_keywords.html">get_keywords</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">files</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_files.html">get_files</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">units</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_units.html">get_units</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">subjects</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_subjects.html">get_subjects</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">bboxes</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_bboxes.html">get_bboxes</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
+<span><span class="va">taxa</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_taxa.html">get_taxa</a></span><span class="op">(</span><span class="fl">140411</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Download associated files</span></span>
-<span><span class="fu"><a href="reference/download_reference_files.html">download_reference_files</a></span><span class="op">(</span></span>
+<span><span class="co"># Download associated files and inspect per-file status</span></span>
+<span><span class="va">downloaded_files</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/download_files.html">download_files</a></span><span class="op">(</span></span>
 <span>  reference_id <span class="op">=</span> <span class="fl">140411</span>,</span>
 <span>  path <span class="op">=</span> <span class="st">"data-raw/servcat-files"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">downloaded_files</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"resourceId"</span>, <span class="st">"success"</span>, <span class="st">"error"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a>
 </h2>
 <p><code>servcat</code> wraps the ServCat REST API and returns R objects suitable for downstream analysis, reporting, and data management workflows.</p>
 <p>Because ServCat records can vary in structure, some returned fields may be missing, empty, or nested depending on the reference, endpoint, and search type used.</p>
+<p>HTTP requests include retry and timeout behavior, and API error messages include response-body details when available.</p>
 </div>
 <div class="section level2">
 <h2 id="getting-help">Getting help<a class="anchor" aria-label="anchor" href="#getting-help"></a>
 </h2>
 <p>Contact a <a href="mailto:mccrea_cobb@fws.gov">project maintainer</a> for help with this repository.</p>
-<p>If you have general questions on creating repositories in the USFWS DGEC, reach out to a USFWS DGEC <a href="https://github.com/orgs/USFWS/people?query=role%3Aowner" class="external-link">owner</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="contribute">Contribute<a class="anchor" aria-label="anchor" href="#contribute"></a>
@@ -268,8 +385,7 @@
 <div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="LICENSE.html">Full license</a></li>
-<li><small>CC0</small></li>
+<li>CC0</li>
 </ul>
 </div>
 

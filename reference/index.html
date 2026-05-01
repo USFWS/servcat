@@ -16,6 +16,11 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/rag_download.html">Use ServCat Files in a RAG Store</a></li>
+    <li><a class="dropdown-item" href="../articles/storing_api_key.html">Storing your ServCat API key</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -42,24 +47,24 @@
 
       <dl><dt>
 
-          <code><a href="download_reference_files.html">download_reference_files()</a></code>
+          <code><a href="download_files.html">download_files()</a></code>
 
         </dt>
         <dd>Download files from a ServCat reference</dd>
 
         <dt>
 
-          <code><a href="get_bibliography.html">get_bibliography()</a></code>
+          <code><a href="get_bboxes.html">get_bboxes()</a></code>
 
         </dt>
-        <dd>Get bibliography metadata for a ServCat reference from the secure ServCat API</dd>
+        <dd>Get bounding boxes from a ServCat reference</dd>
 
         <dt>
 
-          <code><a href="get_bounding_boxes.html">get_bounding_boxes()</a></code>
+          <code><a href="get_bibliography.html">get_bibliography()</a></code>
 
         </dt>
-        <dd>Get geographic bounding boxes from a ServCat reference</dd>
+        <dd>Get bibliography metadata for a ServCat reference</dd>
 
         <dt>
 
@@ -70,17 +75,10 @@
 
         <dt>
 
-          <code><a href="get_external_links.html">get_external_links()</a></code>
+          <code><a href="get_files.html">get_files()</a></code>
 
         </dt>
-        <dd>Get external links from a ServCat reference</dd>
-
-        <dt>
-
-          <code><a href="get_file_info.html">get_file_info()</a></code>
-
-        </dt>
-        <dd>Get digital file metadata from a ServCat reference</dd>
+        <dd>Get digital file information from a ServCat reference</dd>
 
         <dt>
 
@@ -91,17 +89,38 @@
 
         <dt>
 
-          <code><a href="get_lifecycle_info.html">get_lifecycle_info()</a></code>
+          <code><a href="get_lifecycle.html">get_lifecycle()</a></code>
 
         </dt>
-        <dd>Get lifecycle information from the secure ServCat API</dd>
+        <dd>Get lifecycle information for a ServCat reference</dd>
 
         <dt>
 
-          <code><a href="get_reference_owners.html">get_reference_owners()</a></code>
+          <code><a href="get_links.html">get_links()</a></code>
 
         </dt>
-        <dd>Get reference owners from the secure ServCat API</dd>
+        <dd>Get links from a ServCat reference</dd>
+
+        <dt>
+
+          <code><a href="get_owners.html">get_owners()</a></code>
+
+        </dt>
+        <dd>Get owners for a ServCat reference</dd>
+
+        <dt>
+
+          <code><a href="get_reference_summaries.html">get_reference_summaries()</a></code>
+
+        </dt>
+        <dd>Get ServCat reference summaries by ID</dd>
+
+        <dt>
+
+          <code><a href="get_references.html">get_references()</a></code>
+
+        </dt>
+        <dd>Get ServCat references by ID</dd>
 
         <dt>
 
@@ -126,24 +145,59 @@
 
         <dt>
 
-          <code><a href="search_references_advanced.html">search_references_advanced()</a></code>
+          <code><a href="list_access_constraints.html">list_access_constraints()</a></code>
 
         </dt>
-        <dd>Execute an Advanced Search</dd>
+        <dd>List valid ServCat access constraint text</dd>
 
         <dt>
 
-          <code><a href="search_references_by_id.html">search_references_by_id()</a></code>
+          <code><a href="list_date_precisions.html">list_date_precisions()</a></code>
 
         </dt>
-        <dd>Search ServCat references by ID</dd>
+        <dd>List valid ServCat date precision choices</dd>
 
         <dt>
 
-          <code><a href="search_references_by_id_basic.html">search_references_by_id_basic()</a></code>
+          <code><a href="list_file_tags.html">list_file_tags()</a></code>
 
         </dt>
-        <dd>Search ServCat references by ID and return basic fields</dd>
+        <dd>List valid ServCat file processing tags</dd>
+
+        <dt>
+
+          <code><a href="list_reference_type_groups.html">list_reference_type_groups()</a></code>
+
+        </dt>
+        <dd>List valid ServCat reference type groups</dd>
+
+        <dt>
+
+          <code><a href="list_reference_types.html">list_reference_types()</a></code>
+
+        </dt>
+        <dd>List valid ServCat reference types</dd>
+
+        <dt>
+
+          <code><a href="list_subject_categories.html">list_subject_categories()</a></code>
+
+        </dt>
+        <dd>List valid ServCat subject categories</dd>
+
+        <dt>
+
+          <code><a href="list_web_service_types.html">list_web_service_types()</a></code>
+
+        </dt>
+        <dd>List valid ServCat web service types</dd>
+
+        <dt>
+
+          <code><a href="search_references.html">search_references()</a></code>
+
+        </dt>
+        <dd>Search ServCat references</dd>
 
         <dt>
 
@@ -151,6 +205,13 @@
 
         </dt>
         <dd>servcat: Access the ServCat REST API</dd>
+
+        <dt>
+
+          <code><a href="service_version.html">service_version()</a></code>
+
+        </dt>
+        <dd>Get the current ServCat service version</dd>
       </dl></div>
   </main></div>
 

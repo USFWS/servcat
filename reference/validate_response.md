@@ -12,19 +12,19 @@ validate_response(resp, nice_msg_400, nice_msg_500, call = rlang::caller_env())
 
 - resp:
 
-  An `httr2_response`
+  An `httr2_response`.
 
 - nice_msg_400:
 
-  Optional message for 4xx errors
+  Optional message for 4xx errors.
 
 - nice_msg_500:
 
-  Optional message for 5xx errors
+  Optional message for 5xx errors.
 
 - call:
 
-  Calling environment
+  Calling environment.
 
 ## Value
 

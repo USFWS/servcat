@@ -22,7 +22,8 @@ get_collection_references(collection_id, secure = FALSE, api_key = NULL)
 
 - api_key:
 
-  Optional secure API key.
+  Optional secure API key. If omitted, the package API-key helper is
+  used for secure requests.
 
 ## Value
 

@@ -17,7 +17,7 @@ servcat_request(secure = FALSE, suppress_errors = TRUE, api_key = NULL)
 - suppress_errors:
 
   Logical. Suppress HTTP errors so they can be handled by
-  `servcat_validate_response()`.
+  [`validate_response()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/validate_response.md).
 
 - api_key:
 

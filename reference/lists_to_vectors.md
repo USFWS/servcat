@@ -12,12 +12,12 @@ lists_to_vectors(parent_list, child_list_names)
 
 - parent_list:
 
-  A ServCat profile record
+  A ServCat profile record.
 
 - child_list_names:
 
-  Element names to simplify
+  Element names to simplify.
 
 ## Value
 
-A modified list
+A modified list.

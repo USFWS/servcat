@@ -12,12 +12,12 @@ lists_to_tibbles(parent_list, child_list_names)
 
 - parent_list:
 
-  A ServCat profile record
+  A ServCat profile record.
 
 - child_list_names:
 
-  Element names to convert
+  Element names to convert.
 
 ## Value
 
-A modified list
+A modified list.

@@ -12,8 +12,8 @@ collapse_reference_ids(reference_ids)
 
 - reference_ids:
 
-  Numeric vector of reference IDs
+  Numeric vector of reference IDs.
 
 ## Value
 
-A length-1 character vector
+A length-1 character vector.
