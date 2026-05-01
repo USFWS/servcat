@@ -16,6 +16,7 @@ Imports:
     httr2,
     lubridate,
     purrr,
+    quarto,
     rlang,
     stringr,
     tibble
