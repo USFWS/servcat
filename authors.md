@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/USFWS/servcat/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/USFWS/servcat/blob/0.0.0.1/DESCRIPTION)
 
 Cobb M (2026). *servcat: R Interface for the FWS ServCat API*. R package
 version 0.0.0.1, <https://USFWS.github.io/servcat/>.
