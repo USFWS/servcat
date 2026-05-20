@@ -540,12 +540,7 @@ get_reference_profiles_batch <- function(
   to_vectors <- c("keywords", "subjects")
   to_tibbles <- c("taxa", "units", "contentProducerUnits", "filesAndLinks")
   
-  response <- lapply(response, function(ref) {
-    ref <- lists_to_vectors(ref, to_vectors)
-    ref <- lists_to_tibbles(ref, to_tibbles)
-    
-    ref
-  })
+  response <- lapply(response, simplify_reference_profile)
   
   ids <- vapply(
     response,
@@ -616,4 +611,204 @@ restricted_resource_error <- function(reference_id, resource_id = NULL, secure =
     "Retry with secure = TRUE and make sure SERVCAT_API_KEY is set, ",
     "or pass api_key directly."
   )
+}
+
+
+#' Parse a ServCat ReferenceProfile response
+#'
+#' Parses an `httr2` response whose body contains a single ServCat
+#' `ReferenceProfile` object.
+#'
+#' This helper is intended for secure write endpoints that return a full
+#' Reference profile, such as `/rest/MetadataUpload`. It preserves API field
+#' names and applies the same light profile simplification used elsewhere in
+#' the package: selected scalar list fields are converted to character vectors,
+#' and selected repeated object fields are converted to tibbles.
+#'
+#' This function assumes the HTTP response has already been checked with
+#' `validate_response()`. It is responsible only for parsing and shaping the
+#' response body.
+#'
+#' @param resp An `httr2_response` object returned by a ServCat endpoint whose
+#'   response body is a single `ReferenceProfile`.
+#' @param simplify Logical. If `TRUE`, simplify selected nested profile fields
+#'   to vectors or tibbles. If `FALSE`, return the parsed JSON list without
+#'   additional reshaping.
+#' @param call Calling environment used for error reporting.
+#'
+#' @returns A named list representing a ServCat `ReferenceProfile`. When
+#'   `simplify = TRUE`, `keywords` and `subjects` are simplified to character
+#'   vectors where present, and `taxa`, `units`, `contentProducerUnits`, and
+#'   `filesAndLinks` are simplified to tibbles where present.
+#'
+#' @keywords internal
+#' @noRd
+parse_reference_profile_response <- function(
+    resp,
+    simplify = TRUE,
+    call = rlang::caller_env()
+) {
+  validate_flag(simplify, call = call)
+  
+  if (!inherits(resp, "httr2_response")) {
+    cli::cli_abort(
+      "{.arg resp} must be an {.cls httr2_response} object.",
+      call = call
+    )
+  }
+  
+  profile <- httr2::resp_body_json(
+    resp,
+    simplifyVector = FALSE
+  )
+  
+  if (!is.list(profile) || length(profile) == 0 || is.null(names(profile))) {
+    cli::cli_abort(
+      "Could not parse the ServCat response as a single ReferenceProfile object.",
+      call = call
+    )
+  }
+  
+  profile_fields <- c(
+    "referenceId",
+    "referenceType",
+    "citation",
+    "visibility",
+    "lifecycle",
+    "bibliography"
+  )
+  
+  if (!any(profile_fields %in% names(profile))) {
+    cli::cli_abort(
+      c(
+        "The ServCat response does not look like a ReferenceProfile object.",
+        "i" = "Expected at least one of: {.field {profile_fields}}."
+      ),
+      call = call
+    )
+  }
+  
+  if (!isTRUE(simplify)) {
+    return(profile)
+  }
+  
+  simplify_reference_profile(profile)
+  
+  to_vectors <- c(
+    "keywords",
+    "subjects"
+  )
+  
+  to_tibbles <- c(
+    "taxa",
+    "units",
+    "contentProducerUnits",
+    "filesAndLinks"
+  )
+  
+  profile <- lists_to_vectors(profile, to_vectors)
+  profile <- lists_to_tibbles(profile, to_tibbles)
+  
+  profile
+}
+
+
+#' Extract a useful error message from a ServCat API response
+#'
+#' Attempts to extract a concise server-supplied error message from an
+#' `httr2_response`. ServCat error responses may be JSON or plain text, so this
+#' helper first looks for common JSON error fields and then falls back to the
+#' response body as text.
+#'
+#' @param resp An `httr2_response` object.
+#'
+#' @returns A single character string, or `NULL` if no response message can be
+#'   extracted.
+#'
+#' @keywords internal
+response_error_message <- function(resp) {
+  if (!inherits(resp, "httr2_response")) {
+    return(NULL)
+  }
+  
+  parsed <- tryCatch(
+    httr2::resp_body_json(resp, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  
+  if (is.list(parsed) && length(parsed) > 0) {
+    candidates <- c(
+      "message",
+      "Message",
+      "error",
+      "Error",
+      "detail",
+      "Detail",
+      "title",
+      "Title",
+      "exceptionMessage",
+      "ExceptionMessage"
+    )
+    
+    for (field in candidates) {
+      value <- parsed[[field]]
+      
+      if (is.character(value) && length(value) > 0 && nzchar(value[[1]])) {
+        return(clean_error_message(value[[1]]))
+      }
+    }
+    
+    if (!is.null(parsed$ModelState) && is.list(parsed$ModelState)) {
+      model_state <- unlist(parsed$ModelState, use.names = FALSE)
+      
+      if (length(model_state) > 0) {
+        model_state <- model_state[!is.na(model_state) & nzchar(model_state)]
+        
+        if (length(model_state) > 0) {
+          return(clean_error_message(paste(model_state, collapse = " ")))
+        }
+      }
+    }
+  }
+  
+  text <- tryCatch(
+    httr2::resp_body_string(resp),
+    error = function(e) NULL
+  )
+  
+  if (is.character(text) && length(text) > 0 && nzchar(text[[1]])) {
+    return(clean_error_message(text[[1]]))
+  }
+  
+  NULL
+}
+
+
+#' Simplify selected fields in a ServCat ReferenceProfile
+#'
+#' Converts selected nested profile fields to simpler R objects while preserving
+#' API field names.
+#'
+#' @param profile A named list representing a ServCat ReferenceProfile.
+#'
+#' @returns A modified ReferenceProfile list.
+#'
+#' @keywords internal
+simplify_reference_profile <- function(profile) {
+  to_vectors <- c(
+    "keywords",
+    "subjects"
+  )
+  
+  to_tibbles <- c(
+    "taxa",
+    "units",
+    "contentProducerUnits",
+    "filesAndLinks"
+  )
+  
+  profile <- lists_to_vectors(profile, to_vectors)
+  profile <- lists_to_tibbles(profile, to_tibbles)
+  
+  profile
 }

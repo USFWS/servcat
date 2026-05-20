@@ -12,16 +12,23 @@
 # knitr and R markdown default cache directories
 *_cache/
 /cache/
+
+# Testing files
+data-raw
+data
+
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
 # translation temp files
 po/*~
+
 # Preview files
 README.html
 DISCLAIMER.html
 NEWS.html
 
+# Github page files
 .httr-oauth
 .quarto
 inst/doc

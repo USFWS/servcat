@@ -1,6 +1,6 @@
 Package: servcat
 Title: R Interface for the FWS ServCat API
-Version: 0.0.0.1
+Version: 0.0.0.2
 Authors@R: 
     person("McCrea", "Cobb", email = "mccrea_cobb@fws.gov", role = c("aut", "cre"), comment = c(ORCID = "0000-0001-9412-1468"))
 Description: Interact with ServCat in R.
@@ -10,6 +10,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     cli,
+    curl,
     data.table,
     dplyr,
     glue,
@@ -23,5 +24,5 @@ Depends:
     R (>= 4.2)
 LazyData: true
 VignetteBuilder: knitr
-URL: https://USFWS.github.io/servcat/, https://github.com/USFWS/servcat, https://ideal-adventure-2qyoqkw.pages.github.io/
+URL: https://USFWS.github.io/servcat/, https://github.com/USFWS/servcat, https://usfws.github.io/servcat/
 BugReports: https://github.com/USFWS/servcat/issues
