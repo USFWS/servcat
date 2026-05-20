@@ -92,7 +92,7 @@ Useful links:
 \itemize{
   \item \url{https://USFWS.github.io/servcat/}
   \item \url{https://github.com/USFWS/servcat}
-  \item \url{https://ideal-adventure-2qyoqkw.pages.github.io/}
+  \item \url{https://usfws.github.io/servcat/}
   \item Report bugs at \url{https://github.com/USFWS/servcat/issues}
 }
 
