@@ -11,12 +11,12 @@ Source:
 [`DESCRIPTION`](https://github.com/USFWS/servcat/blob/main/DESCRIPTION)
 
 Cobb M (2026). *servcat: R Interface for the FWS ServCat API*. R package
-version 0.0.0.1, <https://USFWS.github.io/servcat/>.
+version 0.0.0.2, <https://USFWS.github.io/servcat/>.
 
     @Manual{,
       title = {servcat: R Interface for the FWS ServCat API},
       author = {McCrea Cobb},
       year = {2026},
-      note = {R package version 0.0.0.1},
+      note = {R package version 0.0.0.2},
       url = {https://USFWS.github.io/servcat/},
     }

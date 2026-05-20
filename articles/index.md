@@ -3,4 +3,4 @@
 ### All vignettes
 
 - [Storing your ServCat API
-  key](https://ideal-adventure-2qyoqkw.pages.github.io/articles/storing_api_key.md):
+  key](https://usfws.github.io/servcat/articles/storing_api_key.md):

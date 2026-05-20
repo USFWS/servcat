@@ -20,89 +20,89 @@ associated units in composite search results, may be returned as
 list-columns.
 
 Search functions return one page of results by default.
-[`search_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references.md)
+[`search_references()`](https://usfws.github.io/servcat/reference/search_references.md)
 can retrieve all pages with `all_pages = TRUE`, and stores ServCat
 paging metadata in the `"page_detail"` attribute of the returned tibble.
 
 File downloads are performed by
-[`download_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_files.md),
+[`download_files()`](https://usfws.github.io/servcat/reference/download_files.md),
 which returns a tibble reporting the local file path, download status,
 and any per-file error message.
 
 ## Main functions
 
-- [`get_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_references.md)
+- [`get_references()`](https://usfws.github.io/servcat/reference/get_references.md)
   retrieves detailed ServCat reference profiles by reference ID.
 
-- [`get_reference_summaries()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_reference_summaries.md)
+- [`get_reference_summaries()`](https://usfws.github.io/servcat/reference/get_reference_summaries.md)
   retrieves summary metadata for one or more ServCat reference IDs.
 
-- [`search_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/search_references.md)
+- [`search_references()`](https://usfws.github.io/servcat/reference/search_references.md)
   executes ServCat Advanced Search requests, including optional
   composite results and all-page retrieval.
 
-- [`get_collection_references()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_collection_references.md)
+- [`get_collection_references()`](https://usfws.github.io/servcat/reference/get_collection_references.md)
   retrieves references in a saved collection.
 
-- [`download_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/download_files.md)
+- [`download_files()`](https://usfws.github.io/servcat/reference/download_files.md)
   downloads one or more ServCat digital files from a reference.
 
-- [`service_version()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/service_version.md)
+- [`service_version()`](https://usfws.github.io/servcat/reference/service_version.md)
   returns the ServCat service version.
 
 ## Reference metadata functions
 
-- [`get_owners()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_owners.md)
+- [`get_owners()`](https://usfws.github.io/servcat/reference/get_owners.md)
   retrieves owners associated with a reference.
 
-- [`get_keywords()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_keywords.md)
+- [`get_keywords()`](https://usfws.github.io/servcat/reference/get_keywords.md)
   retrieves keywords associated with a reference.
 
-- [`get_links()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_links.md)
+- [`get_links()`](https://usfws.github.io/servcat/reference/get_links.md)
   retrieves external links associated with a reference.
 
-- [`get_files()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_files.md)
+- [`get_files()`](https://usfws.github.io/servcat/reference/get_files.md)
   retrieves digital file metadata associated with a reference.
 
-- [`get_bibliography()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_bibliography.md)
+- [`get_bibliography()`](https://usfws.github.io/servcat/reference/get_bibliography.md)
   retrieves bibliography metadata for a reference.
 
-- [`get_lifecycle()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_lifecycle.md)
+- [`get_lifecycle()`](https://usfws.github.io/servcat/reference/get_lifecycle.md)
   retrieves lifecycle metadata for a reference.
 
-- [`get_units()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_units.md)
+- [`get_units()`](https://usfws.github.io/servcat/reference/get_units.md)
   retrieves units associated with a reference.
 
-- [`get_bboxes()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_bboxes.md)
+- [`get_bboxes()`](https://usfws.github.io/servcat/reference/get_bboxes.md)
   retrieves geographic bounding boxes associated with a reference.
 
-- [`get_subjects()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_subjects.md)
+- [`get_subjects()`](https://usfws.github.io/servcat/reference/get_subjects.md)
   retrieves subject categories associated with a reference.
 
-- [`get_taxa()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/get_taxa.md)
+- [`get_taxa()`](https://usfws.github.io/servcat/reference/get_taxa.md)
   retrieves taxa associated with a reference.
 
 ## Lookup-list functions
 
-- [`list_access_constraints()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_access_constraints.md)
+- [`list_access_constraints()`](https://usfws.github.io/servcat/reference/list_access_constraints.md)
   lists access constraint values.
 
-- [`list_date_precisions()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_date_precisions.md)
+- [`list_date_precisions()`](https://usfws.github.io/servcat/reference/list_date_precisions.md)
   lists date precision values.
 
-- [`list_file_tags()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_file_tags.md)
+- [`list_file_tags()`](https://usfws.github.io/servcat/reference/list_file_tags.md)
   lists file tag values.
 
-- [`list_reference_type_groups()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_reference_type_groups.md)
+- [`list_reference_type_groups()`](https://usfws.github.io/servcat/reference/list_reference_type_groups.md)
   lists reference type groups.
 
-- [`list_reference_types()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_reference_types.md)
+- [`list_reference_types()`](https://usfws.github.io/servcat/reference/list_reference_types.md)
   lists reference types.
 
-- [`list_subject_categories()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_subject_categories.md)
+- [`list_subject_categories()`](https://usfws.github.io/servcat/reference/list_subject_categories.md)
   lists subject category values.
 
-- [`list_web_service_types()`](https://ideal-adventure-2qyoqkw.pages.github.io/reference/list_web_service_types.md)
+- [`list_web_service_types()`](https://usfws.github.io/servcat/reference/list_web_service_types.md)
   lists web service type values.
 
 ## Internal helpers
