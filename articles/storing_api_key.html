@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="storing_api_key_files/libs/quarto-html/popper.min.js"></script><script src="storing_api_key_files/libs/quarto-html/tippy.umd.min.js"></script><link href="storing_api_key_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="storing_api_key_files/libs/quarto-html/light-border.css" rel="stylesheet">
@@ -41,8 +41,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/rag_download.html">Use ServCat Files in a RAG Store</a></li>
-    <li><a class="dropdown-item" href="../articles/storing_api_key.html">Storing your ServCat API key</a></li>
+<li><a class="dropdown-item" href="../articles/storing_api_key.html">Storing your ServCat API key</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -65,7 +64,7 @@
 
 
 
-      <small class="dont-index">Source: <a href="https://github.com/USFWS/servcat/blob/0.0.0.1/vignettes/storing_api_key.qmd" class="external-link"><code>vignettes/storing_api_key.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/USFWS/servcat/blob/main/vignettes/storing_api_key.qmd" class="external-link"><code>vignettes/storing_api_key.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -128,38 +127,6 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>SERVCAT_API_KEY <span class="op">=</span> <span class="st">"your-api-key-here"</span><span class="op">)</span></span></code></pre></div>
 <p>This only lasts for the current R session. When you restart R, the value will be gone.</p>
 <p>For routine use, prefer storing the key in <code>.Renviron</code>.</p>
-</section><section class="level2"><h2 id="keep-your-key-out-of-git">Keep your key out of Git<a class="anchor" aria-label="anchor" href="#keep-your-key-out-of-git"></a>
-</h2>
-<p>Never commit your API key to GitHub.</p>
-<p>You should not store your API key in files such as:</p>
-<ul>
-<li><code>README.qmd</code></li>
-<li><code>README.md</code></li>
-<li>example scripts</li>
-<li>vignettes</li>
-<li>tests</li>
-<li><code>.Rprofile</code></li>
-<li>project-specific <code>.Renviron</code> files committed to the repository</li>
-</ul>
-<p>If you use a project-level <code>.Renviron</code> file, add it to <code>.gitignore</code>:</p>
-<pre class="text"><code><span><span class="va">.Renviron</span></span></code></pre>
-<p>You can check whether Git is tracking the file with:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.html" class="external-link">system</a></span><span class="op">(</span><span class="st">"git status --short"</span><span class="op">)</span></span></code></pre></div>
-</section><section class="level2"><h2 id="using-an-api-key-in-github-actions">Using an API key in GitHub Actions<a class="anchor" aria-label="anchor" href="#using-an-api-key-in-github-actions"></a>
-</h2>
-<p>If the package website is built with GitHub Actions and the build needs to run code that uses the ServCat API, store the key as a GitHub Actions secret.</p>
-<p>In your repository on GitHub:</p>
-<ol type="1">
-<li>Go to <strong>Settings</strong>.</li>
-<li>Go to <strong>Secrets and variables</strong>.</li>
-<li>Choose <strong>Actions</strong>.</li>
-<li>Add a new repository secret named <code>SERVCAT_API_KEY</code>.</li>
-</ol>
-<p>Then expose it to the pkgdown workflow as an environment variable:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">env</span><span class="kw">:</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">SERVCAT_API_KEY</span><span class="kw">:</span><span class="at"> ${{ secrets.SERVCAT_API_KEY }}</span></span></code></pre></div>
-<p>Do not hard-code the key directly in the workflow file.</p>
 </section><section class="level2"><h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
 </h2>
 <section class="level3"><h3 id="sys-getenvservcat_api_key-returns-an-empty-string">
@@ -182,17 +149,14 @@
 </section><section class="level3"><h3 id="the-key-works-in-one-project-but-not-another">The key works in one project but not another<a class="anchor" aria-label="anchor" href="#the-key-works-in-one-project-but-not-another"></a>
 </h3>
 <p>The key may have been set only for a single R session or only for one project. For regular use across projects, store it in your user-level <code>.Renviron</code> file with:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu">edit_r_environ</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-</section><section class="level3"><h3 id="i-accidentally-committed-my-key">I accidentally committed my key<a class="anchor" aria-label="anchor" href="#i-accidentally-committed-my-key"></a>
-</h3>
-<p>If an API key was committed to GitHub, remove it from the repository and rotate or revoke the key. Removing the key from the latest commit is not enough if it still exists in the Git history.</p>
 </section></section><section class="level2"><h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
 <p>Use this pattern for persistent local setup:</p>
 <pre class="text"><code><span><span class="va">SERVCAT_API_KEY</span><span class="op">=</span><span class="va">your</span><span class="op">-</span><span class="va">api</span><span class="op">-</span><span class="va">key</span><span class="op">-</span><span class="va">here</span></span></code></pre>
 <p>Then restart R and confirm that the key is available:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"SERVCAT_API_KEY"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>After that, <code>servcat</code> functions can use the key without requiring you to place it directly in your scripts.</p>
 </section><script id="quarto-html-after-body" type="application/javascript">

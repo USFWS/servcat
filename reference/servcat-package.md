@@ -119,7 +119,7 @@ Useful links:
 
 - <https://github.com/USFWS/servcat>
 
-- <https://ideal-adventure-2qyoqkw.pages.github.io/>
+- <https://usfws.github.io/servcat/>
 
 - Report bugs at <https://github.com/USFWS/servcat/issues>
 

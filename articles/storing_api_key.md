@@ -113,55 +113,6 @@ will be gone.
 
 For routine use, prefer storing the key in `.Renviron`.
 
-## Keep your key out of Git
-
-Never commit your API key to GitHub.
-
-You should not store your API key in files such as:
-
-- `README.qmd`
-- `README.md`
-- example scripts
-- vignettes
-- tests
-- `.Rprofile`
-- project-specific `.Renviron` files committed to the repository
-
-If you use a project-level `.Renviron` file, add it to `.gitignore`:
-
-``` text
-.Renviron
-```
-
-You can check whether Git is tracking the file with:
-
-``` r
-
-system("git status --short")
-```
-
-## Using an API key in GitHub Actions
-
-If the package website is built with GitHub Actions and the build needs
-to run code that uses the ServCat API, store the key as a GitHub Actions
-secret.
-
-In your repository on GitHub:
-
-1.  Go to **Settings**.
-2.  Go to **Secrets and variables**.
-3.  Choose **Actions**.
-4.  Add a new repository secret named `SERVCAT_API_KEY`.
-
-Then expose it to the pkgdown workflow as an environment variable:
-
-``` yaml
-env:
-  SERVCAT_API_KEY: ${{ secrets.SERVCAT_API_KEY }}
-```
-
-Do not hard-code the key directly in the workflow file.
-
 ## Troubleshooting
 
 ### `Sys.getenv("SERVCAT_API_KEY")` returns an empty string
@@ -195,12 +146,6 @@ project. For regular use across projects, store it in your user-level
 
 usethis::edit_r_environ()
 ```
-
-### I accidentally committed my key
-
-If an API key was committed to GitHub, remove it from the repository and
-rotate or revoke the key. Removing the key from the latest commit is not
-enough if it still exists in the Git history.
 
 ## Summary
 
